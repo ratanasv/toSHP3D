@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <vector>
-
+#include "LatLongElevation.h"
 
 
 
@@ -31,6 +31,8 @@ struct ElevationData{
 #define SMART_ARRAY(array, type)\
 	std::vector<type>* vector = new std::vector<type>;\
 	std::shared_ptr<std::vector<type>> array(vector);
+
+
 
 
 struct ElevationData readXTR(const char* fName);

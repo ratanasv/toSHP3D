@@ -21,9 +21,15 @@
     <ClCompile Include="createSHP3D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LatLongElevation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="createSHP3D.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LatLongElevation.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
