@@ -1,9 +1,9 @@
 #define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
-#include <boost/filesystem.hpp>
+
 #include "LatLongElevation.h"
 
-using boost::filesystem::path;
+
 
 
 BOOST_AUTO_TEST_CASE(TestLatLongElevation) {
