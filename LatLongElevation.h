@@ -8,6 +8,7 @@ using std::runtime_error;
 using std::string;
 using std::shared_ptr;
 using std::vector;
+using std::out_of_range;
 
 class CurlInitException : runtime_error {
 public:
@@ -33,12 +34,11 @@ private:
 	const float LNG_MAX;
 	const float LAT_MIN;
 	const float LAT_MAX;
-	const string XTR_FILENAME;
 	shared_ptr<vector<float>> elevationData;
 public:
 	MikeDEM(float lngMin, float lngMax, float latMin, float latMax, 
-		int numLngs, int numLats, const std::string& xtrFilename);
-	virtual float elevAt(float latitude, float longtitude);
+		int numLngs, int numLats);
+	virtual float elevAt(float longtitude, float latitude);
 protected:
 	string createQueryString(const string& baseURL);
 	void initHeightWithXTR();

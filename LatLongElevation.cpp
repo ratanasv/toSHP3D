@@ -1,19 +1,21 @@
 #include "LatLongElevation.h"
 #include <curl/curl.h>
-#include <stdexcept>
 #include <cassert>
 #include <sstream>
 
 
 using std::ostringstream;
 
-const string MIKEDEM_BASE_URL("http://maverick.coas.oregonstate.edu:11300/terrainextraction.ashx?");
+static const string MIKEDEM_BASE_URL("http://maverick.coas.oregonstate.edu:11300/terrainextraction.ashx?");
+static const string XTR_FILENAME("temp.xtr");
 
-MikeDEM::MikeDEM(float latMin, float latMax,float lngMin, float lngMax, 
-	int numLngs, int numLats, const std::string& xtrFilename) : NUM_LNGS(numLngs), NUM_LATS(numLats),
-	LNG_MIN(lngMin), LNG_MAX(lngMax), LAT_MIN(latMin), LAT_MAX(latMax),
-	XTR_FILENAME(xtrFilename) {
-	CURL* curl = curl_easy_init();
+MikeDEM::MikeDEM(float lngMin, float lngMax, float latMin, float latMax,
+	int numLngs, int numLats) : NUM_LNGS(numLngs), NUM_LATS(numLats),
+	LNG_MIN(lngMin), LNG_MAX(lngMax), LAT_MIN(latMin), LAT_MAX(latMax) {
+
+	shared_ptr<CURL> curl(curl_easy_init(), [](CURL* c){
+		curl_easy_cleanup(c);
+	});
 	CURLcode res;
 
 	if (!curl) {
@@ -21,8 +23,8 @@ MikeDEM::MikeDEM(float latMin, float latMax,float lngMin, float lngMax,
 	}
 
 	auto queryString = createQueryString(MIKEDEM_BASE_URL);
-	curl_easy_setopt(curl, CURLOPT_URL, queryString.c_str());
-	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl.get(), CURLOPT_URL, queryString.c_str());
+	curl_easy_setopt(curl.get(), CURLOPT_FOLLOWLOCATION, 1L);
 
 	shared_ptr<FILE> xtrFile(fopen(XTR_FILENAME.c_str(), "wb"), [](FILE* f){
 		fclose(f);
@@ -31,23 +33,25 @@ MikeDEM::MikeDEM(float latMin, float latMax,float lngMin, float lngMax,
 	if (!xtrFile) {
 		throw runtime_error("can't open XTR file");
 	}
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, xtrFile.get());
+	curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, xtrFile.get());
  
-	res = curl_easy_perform(curl);
+	res = curl_easy_perform(curl.get());
 	if (res != CURLE_OK) {
 		throw CurlConnectionException(curl_easy_strerror(res));
 	}
 
-	curl_easy_cleanup(curl);
+	xtrFile.reset();
+	initHeightWithXTR();
 }
 
-float MikeDEM::elevAt( float latitude, float longtitude ) {
+float MikeDEM::elevAt( float longtitude, float latitude ) {
 	double latRange = LAT_MAX-LAT_MIN;
 	double lngRange = LNG_MAX-LNG_MIN;
 	int latI = (int)( ((latitude-LAT_MIN)/latRange)*((float)NUM_LATS-1.0)  );
 	int lngI = (int)( ((longtitude-LNG_MIN)/lngRange)*((float)NUM_LNGS-1.0)  );
-	assert(latI < NUM_LATS);
-	assert(lngI < NUM_LNGS);
+	if (latI > NUM_LATS || lngI > NUM_LNGS || latI < 0 || lngI < 0 ) {
+		throw out_of_range("invalid lat/long");
+	}
 	return elevationData->at(NUM_LNGS*latI + lngI);
 }
 
@@ -62,12 +66,15 @@ string MikeDEM::createQueryString( const string& baseURL ) {
 void MikeDEM::initHeightWithXTR () {
 	shared_ptr<FILE> xtrFile(fopen(XTR_FILENAME.c_str(), "rb"), [](FILE* f){
 		fclose(f);
+		remove(XTR_FILENAME.c_str());
 	});
 	assert(xtrFile.get() != NULL);
 
 	const char FORM_FEED =  0x0c;
 
-	float minLng, maxLng, numLngs, minLat, maxLat, numLats;
+	float minLng, maxLng, minLat, maxLat;
+	int numLngs, numLats;
+
 	fscanf( xtrFile.get(), "%f %f %d", &minLng, &maxLng, &numLngs );
 	fscanf( xtrFile.get(), "%f %f %d", &minLat, &maxLat, &numLats );
 	assert(numLngs == NUM_LNGS);

@@ -10,5 +10,5 @@ void main(int argc, char** argv)
 //	createBMPwithSHP("iduSimple.shp", "testBmp.bmp", "EugeneTerrainLooseFit.xtr");
 //	createBMPwithSHP3D("idu3D.shp", "EasternOregon.bmp");
 //	createTTTFile("idu.ttt", "idu.shp");
-	MikeDEM(40.95,41.0,-122.95,-123.0,5,5, "test.xtr");
+	MikeDEM(40.95,41.0,-122.95,-123.0,5,5);
 }
