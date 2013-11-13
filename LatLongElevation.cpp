@@ -26,21 +26,22 @@ MikeDEM::MikeDEM(float lngMin, float lngMax, float latMin, float latMax,
 	curl_easy_setopt(curl.get(), CURLOPT_URL, queryString.c_str());
 	curl_easy_setopt(curl.get(), CURLOPT_FOLLOWLOCATION, 1L);
 
-	shared_ptr<FILE> xtrFile(fopen(XTR_FILENAME.c_str(), "wb"), [](FILE* f){
-		fclose(f);
-	});
+	{
+		shared_ptr<FILE> xtrFile(fopen(XTR_FILENAME.c_str(), "wb"), [](FILE* f){
+			fclose(f);
+		});
 
-	if (!xtrFile) {
-		throw runtime_error("can't open XTR file");
+		if (!xtrFile) {
+			throw runtime_error("can't open XTR file");
+		}
+		curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, xtrFile.get());
+		res = curl_easy_perform(curl.get());
 	}
-	curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, xtrFile.get());
- 
-	res = curl_easy_perform(curl.get());
+	
 	if (res != CURLE_OK) {
 		throw CurlConnectionException(curl_easy_strerror(res));
 	}
 
-	xtrFile.reset();
 	initHeightWithXTR();
 }
 
@@ -49,7 +50,11 @@ float MikeDEM::elevAt( float longtitude, float latitude ) {
 	double lngRange = LNG_MAX-LNG_MIN;
 	int latI = (int)( ((latitude-LAT_MIN)/latRange)*((float)NUM_LATS-1.0)  );
 	int lngI = (int)( ((longtitude-LNG_MIN)/lngRange)*((float)NUM_LNGS-1.0)  );
-	if (latI > NUM_LATS || lngI > NUM_LNGS || latI < 0 || lngI < 0 ) {
+	return elevAtIndex(lngI, latI);
+}
+
+float MikeDEM::elevAtIndex(int lngI, int latI) {
+	if (latI > NUM_LATS || lngI > NUM_LNGS || lngI < 0 || latI < 0 ) {
 		throw out_of_range("invalid lat/long");
 	}
 	return elevationData->at(NUM_LNGS*latI + lngI);

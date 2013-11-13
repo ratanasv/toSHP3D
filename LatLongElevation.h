@@ -39,6 +39,7 @@ public:
 	MikeDEM(float lngMin, float lngMax, float latMin, float latMax, 
 		int numLngs, int numLats);
 	virtual float elevAt(float longtitude, float latitude);
+	virtual float elevAtIndex(int lngI, int latI);
 protected:
 	string createQueryString(const string& baseURL);
 	void initHeightWithXTR();
