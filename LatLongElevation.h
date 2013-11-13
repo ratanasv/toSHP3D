@@ -1,9 +1,13 @@
 #pragma once
 #include <stdexcept>
 #include <cstring>
+#include <memory>
+#include <vector>
 
 using std::runtime_error;
 using std::string;
+using std::shared_ptr;
+using std::vector;
 
 class CurlInitException : runtime_error {
 public:
@@ -29,14 +33,18 @@ private:
 	const float LNG_MAX;
 	const float LAT_MIN;
 	const float LAT_MAX;
+	const string XTR_FILENAME;
+	shared_ptr<vector<float>> elevationData;
 public:
 	MikeDEM(float lngMin, float lngMax, float latMin, float latMax, 
-		int numLngs, int numLats);
-	virtual float elevAt(float longtitude, float latitude);
+		int numLngs, int numLats, const std::string& xtrFilename);
+	virtual float elevAt(float latitude, float longtitude);
 protected:
 	string createQueryString(const string& baseURL);
+	void initHeightWithXTR();
 
 private:
 	MikeDEM(const MikeDEM& other);
 	const MikeDEM& operator=(const MikeDEM& other);
+	
 };
