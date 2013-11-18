@@ -1,7 +1,8 @@
 #include "createSHP3D.h"
 #include <cstring>
 #include <boost/filesystem.hpp>
-#include "proj_api.h"
+#include <ogr_api.h>
+#include <ogr_spatialref.h>
 
 using boost::filesystem::path;
 using std::string;
@@ -20,22 +21,8 @@ void main(int argc, char** argv)
 		exit(EXIT_FAILURE);
 	}
 	shpPath.replace_extension(".prj");
-	FILE* ifp = fopen(shpPath.string().c_str(), "r");
-	char parg[4096];
-	char* in_args[100];
 
-	if ( ifp ) {
-		int i=0;
-		while( fscanf( ifp, "%s", parg) != EOF ) {
-			in_args[i] = (char*)malloc ( strlen(parg)+1 );
-			strcpy ( in_args[i], parg);
-			i++;
-		}
-
-		fclose (ifp);
-	}
-	projPJ pj = pj_init(1, in_args); 
-
+	OGRSpatialReference oSRS;
 
  //	createBMP("EasternOregon.bmp", "EasternOregonSnugFit.xtr");
  //	createSHP3D("iduLatLong.shp", "idu3D.shp", "EasternOregonLooseFit.xtr");
