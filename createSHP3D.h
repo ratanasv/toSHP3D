@@ -50,3 +50,4 @@ DECLDIR void createTTTFile(const char* tName, const char* shpName);
 
 char* getContent(const boost::filesystem::path& path);
 template <class T> shared_ptr<T> initArray(T* data);
+void createSHP3D(const char* inSHP, const char* outSHP);

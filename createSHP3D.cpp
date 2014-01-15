@@ -484,3 +484,112 @@ template <class T> shared_ptr<T> initArray(T* data) {
 	});
 }
 
+void createSHP3D(const char* inSHP, const char* outSHP) {
+	fs::path inPRJPath(inSHP);
+	if (!exists(inPRJPath)) {
+		fprintf(stderr, "%s doesn't exist\n", inPRJPath.c_str());
+		exit(EXIT_FAILURE);
+	}
+	inPRJPath.replace_extension(".prj");
+
+	fprintf(stderr, "determining transformation....\n");
+	OGRSpatialReference sourceSRS;
+	char* prjWKT = getContent(inPRJPath);
+	sourceSRS.importFromWkt(&prjWKT);
+	OGRSpatialReference targetSRS;
+	targetSRS.SetWellKnownGeogCS("WGS84");
+	OGRCoordinateTransformation* transformation;
+
+	transformation = OGRCreateCoordinateTransformation(&sourceSRS, &targetSRS);
+
+
+	fs::path inSHPPath(inSHP);
+	SHPHandle shpIn = SHPOpen(inSHPPath.string().c_str(),"rb");
+	double mins[4], maxs[4];
+	int numShapes;
+	SHPGetInfo(shpIn,&numShapes,NULL,mins,maxs);
+
+	double minLat, maxLat, minLng, maxLng;
+	minLat = FLT_MAX; minLng = FLT_MAX;
+	maxLat = FLT_MIN; maxLng = FLT_MIN;
+
+	for (int i=0; i<numShapes; i++) {//for each shape
+		SHPObject* shpObjIn = SHPReadObject(shpIn, i);
+		for (int j = 0; j<shpObjIn->nVertices; j++) {
+			double x = shpObjIn->padfX[j];
+			double y = shpObjIn->padfY[j];
+
+			bool isSuccessful = transformation->Transform(1, &x, &y);
+
+			if (!isSuccessful) {
+				fprintf(stderr, "failed to project shp no. %d point no. %d\n", i, j);
+				exit(EXIT_FAILURE);
+			}
+
+			if (x < minLng) {
+				minLng = x;
+			}
+			if (x > maxLng) {
+				maxLng = x;
+			}
+			if (y < minLat) {
+				minLat = y;
+			}
+			if (y > maxLat) {
+				maxLat = y;
+			}
+		}
+		SHPDestroyObject(shpObjIn);
+	}
+
+	fprintf(stderr, "connecting to DEM server with query %f %f %f %f %d %d \n", 
+		minLng, maxLng, minLat, maxLat, 2048, 2048);
+	MikeDEM demHeightField(minLng, maxLng, minLat, maxLat, 2048, 2048);
+
+
+	fprintf(stderr, "creating 3D shapefile.... \n");
+	SHPHandle shpOut = SHPCreate(outSHP,SHPT_POLYGONZ);
+
+
+	for (int i=0; i<numShapes; i++) {
+		SHPObject* shpObjIn = SHPReadObject(shpIn, i);
+
+
+		bool isSuccessful = transformation->Transform(
+			shpObjIn->nVertices, shpObjIn->padfX, shpObjIn->padfY);
+
+		if (!isSuccessful) {
+			fprintf(stderr, "failed to project shp no. %d\n", i);
+			exit(EXIT_FAILURE);
+		}
+
+		double* heights = new double[shpObjIn->nVertices];
+
+		for (int j=0; j<shpObjIn->nVertices; j++) {
+			heights[j] = demHeightField.elevAt(
+				shpObjIn->padfX[j], shpObjIn->padfY[j]);
+		}
+
+		SHPObject* shpObjOut = SHPCreateObject(
+			SHPT_POLYGONZ,
+			shpObjIn->nShapeId,
+			shpObjIn->nParts,
+			shpObjIn->panPartStart,
+			shpObjIn->panPartType,
+			shpObjIn->nVertices,
+			shpObjIn->padfX,
+			shpObjIn->padfY,
+			heights,
+			NULL);
+
+		delete[] heights;
+
+		int entityNumber = SHPWriteObject(shpOut,-1, shpObjOut);
+		SHPDestroyObject(shpObjOut);
+		SHPDestroyObject(shpObjIn);
+	}
+
+
+	SHPClose(shpIn);
+	SHPClose(shpOut);
+}

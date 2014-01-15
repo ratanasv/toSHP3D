@@ -12,27 +12,11 @@ void main(int argc, char** argv)
 // 	}
 
 //	path shpPath(argv[1]);
-	path shpPath("E:/Vault/WW2100/IDU.shp");
-	if (!exists(shpPath)) {
-		fprintf(stderr, "%s doesn't exist\n", shpPath.c_str());
-		exit(EXIT_FAILURE);
-	}
-
-	OGRSpatialReference sourceSRS;
-	char* prjWKT = getContent(shpPath.replace_extension(".prj"));
-	if (prjWKT == NULL) {
-		fprintf(stderr, "reading PRJ file failed");
-		exit(EXIT_FAILURE);
-	}
-	sourceSRS.importFromWkt(&prjWKT);
-	OGRSpatialReference targetSRS;
-	targetSRS.SetWellKnownGeogCS("WGS84");
-	OGRCoordinateTransformation* transformation;
-
-	transformation = OGRCreateCoordinateTransformation(&sourceSRS, &targetSRS);
+	const char* shpIn = "E:\Vault\centralOregon\idu.shp";
+	const char* shpOut = "C:\Users\ratanasv\Desktop\idu3D.shp";
 
 
-
+	createSHP3D(shpIn, shpOut);
  //	createBMP("EasternOregon.bmp", "EasternOregonSnugFit.xtr");
  //	createSHP3D("iduLatLong.shp", "idu3D.shp", "EasternOregonLooseFit.xtr");
 //	createNormalTexture("iduNormal.bmp", "EasternOregonSnugFit.xtr");
@@ -43,3 +27,5 @@ void main(int argc, char** argv)
 //	createTTTFile("idu.ttt", "idu.shp");
 //	MikeDEM(40.95,41.0,-122.95,-123.0,5,5);
 }
+
+
