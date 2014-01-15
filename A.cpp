@@ -1,11 +1,8 @@
+#include "stdafx.h"
 #include "createSHP3D.h"
-#include <cstring>
-#include <boost/filesystem.hpp>
-#include <ogr_api.h>
-#include <ogr_spatialref.h>
+
 
 using boost::filesystem::path;
-using std::string;
 
 void main(int argc, char** argv)
 {
@@ -15,14 +12,26 @@ void main(int argc, char** argv)
 // 	}
 
 //	path shpPath(argv[1]);
-	path shpPath("C:/Vault/WW2010/IDU.shp");
+	path shpPath("E:/Vault/WW2100/IDU.shp");
 	if (!exists(shpPath)) {
-		fprintf(stderr, "%s doesn't exist\n", argv[1]);
+		fprintf(stderr, "%s doesn't exist\n", shpPath.c_str());
 		exit(EXIT_FAILURE);
 	}
-	shpPath.replace_extension(".prj");
 
-	OGRSpatialReference oSRS;
+	OGRSpatialReference sourceSRS;
+	char* prjWKT = getContent(shpPath.replace_extension(".prj"));
+	if (prjWKT == NULL) {
+		fprintf(stderr, "reading PRJ file failed");
+		exit(EXIT_FAILURE);
+	}
+	sourceSRS.importFromWkt(&prjWKT);
+	OGRSpatialReference targetSRS;
+	targetSRS.SetWellKnownGeogCS("WGS84");
+	OGRCoordinateTransformation* transformation;
+
+	transformation = OGRCreateCoordinateTransformation(&sourceSRS, &targetSRS);
+
+
 
  //	createBMP("EasternOregon.bmp", "EasternOregonSnugFit.xtr");
  //	createSHP3D("iduLatLong.shp", "idu3D.shp", "EasternOregonLooseFit.xtr");

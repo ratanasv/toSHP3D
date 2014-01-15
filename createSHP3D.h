@@ -1,10 +1,12 @@
-
 #pragma once
 
 #include <memory>
 #include <vector>
 #include "LatLongElevation.h"
+#include <cstring>
 
+using std::string;
+class boost::filesystem::path;
 
 
 #if defined A_DLL_EXPORT
@@ -45,3 +47,6 @@ DECLDIR void createBMPwithSHP(const char* shpFile, const char* bmpFile, const ch
 DECLDIR void createBMPwithSHP3D(const char* shpFile, const char* bmpFile, int dim);
 DECLDIR std::shared_ptr<std::vector<double>> getSHPInfo(const char* shpName);
 DECLDIR void createTTTFile(const char* tName, const char* shpName);
+
+char* getContent(const boost::filesystem::path& path);
+template <class T> shared_ptr<T> initArray(T* data);

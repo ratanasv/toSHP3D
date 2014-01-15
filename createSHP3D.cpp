@@ -1,21 +1,8 @@
-#define DLL_EXPORT
-
+#include "stdafx.h"
 #include "createSHP3D.h"
-#include "XMLHandler.h"
-#include <list>
-#include <omp.h>
-#include <cstdio>
-#include <iostream>
-#include <ctime>
-#include <map>
-#include "SOIL.h"
-#include <cassert>
-#include "mat.h"
-#include "shapefil.h"
-#include "polypartition.h"
 
 using namespace vir;
-
+namespace fs = boost::filesystem;
 //global variables
 std::shared_ptr<std::vector<double>> giveMeHeights(SHPObject* shpObjIn, struct ElevationData);
 
@@ -468,4 +455,32 @@ DECLDIR void createTTTFile(const char* tName, const char* shpName)
 	fclose(tri_file);
 }
 
+char* getContent(const fs::path& path) {
+	shared_ptr<FILE> file (fopen(path.string().c_str(), "rb"), [](FILE* fp) {
+		fclose(fp);
+	});
+
+	if (file.get() == NULL) {
+		return NULL;
+	}
+
+	fseek(file.get(), 0L, SEEK_END);
+	long size = ftell(file.get());
+
+	fseek(file.get(), 0L, SEEK_SET);
+	char* buffer = new char[size+1];
+	fread(buffer, 1, size, file.get());
+
+	buffer[size] = '\0';
+
+	return buffer;
+}
+
+
+
+template <class T> shared_ptr<T> initArray(T* data) {
+	return shared_ptr<T>(data, [](T* ptr) {
+		delete[] ptr;
+	});
+}
 

@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "LatLongElevation.h"
 #include <curl/curl.h>
 #include <cassert>
