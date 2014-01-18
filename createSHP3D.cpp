@@ -363,6 +363,16 @@ DECLDIR void createBMPwithSHP3D(const char* shpFile, const char* bmpFile, int di
 
 DECLDIR std::shared_ptr<std::vector<double>> getSHPInfo(const char* shpName)
 {
+	FILE* fp = fopen(shpName, "rb");
+	fseek(fp, 32, SEEK_SET);
+	int shapeType;
+	double bounds[6];
+	int count = fread(&shapeType, sizeof(int), 1, fp);
+	count = fread(bounds, sizeof(double), 6, fp);
+	fclose(fp);
+	
+	
+
 	std::shared_ptr<std::vector<double>> MinsMaxs(new std::vector<double>);
 	SHPHandle shpIn = SHPOpen(shpName,"rb");
 	assert(shpIn != NULL);
@@ -376,7 +386,17 @@ DECLDIR std::shared_ptr<std::vector<double>> getSHPInfo(const char* shpName)
 	}
 	MinsMaxs->push_back((double)numShapes);
 	MinsMaxs->push_back((double)shpType);
+
+	for (int i =0; i<numShapes;i++) {
+		SHPObject* handle = SHPReadObject(shpIn, i);
+		fprintf(stderr, "%lf\n", handle->dfZMin);
+
+	}
 	SHPClose(shpIn);
+
+
+
+	
 	return MinsMaxs;
 }
 
@@ -398,9 +418,11 @@ DECLDIR void createTTTFile(const char* tName, const char* shpName)
 	SHPGetInfo(shp_handle.get(), &num_shapes, NULL, NULL, NULL);
 	vector<shared_ptr<vector<unsigned>>> results(num_shapes, 
 		shared_ptr<vector<unsigned>>(NULL));
-	for(int i =0; i<num_shapes;i++){
-		SMART_SHAPE(shape, shp_handle, i)
-		SMART_ARRAY(result, unsigned)
+	
+	for(int i =0; i<num_shapes;i++) {
+		SMART_SHAPE(shape, shp_handle, i);
+		SMART_ARRAY(result, unsigned);
+		list<TPPLPoly> listPoly, listResult;
 		for(int j = 0; j<shape->nParts;j++){
 			int first = shape->panPartStart[j];
 			int last;
@@ -410,28 +432,30 @@ DECLDIR void createTTTFile(const char* tName, const char* shpName)
 				last = shape->panPartStart[j+1]-1;
 			TPPLPoly poly;
 			poly.Init(last-first+1);
-			poly.SetHole(false);
 			unsigned c=0;
 			for(int i = first; i<= last; i++){
 				poly[c].x = shape->padfX[i];
 				poly[c].y = shape->padfY[i];
 				c++;
 			}
-			poly.SetOrientation(TPPL_CCW);
-			list<TPPLPoly> listPoly, listResult;
-			listPoly.push_back(poly);
-			TPPLPartition pp;
-			pp.Triangulate_EC(&listPoly, &listResult);
-			list<TPPLPoly>::iterator iter = listResult.begin();
-			for(; iter!=listResult.end(); iter++){//for each triangle in the list
-				unsigned index;
-				index = getIndexFromListPoly((*iter)[0],shape);//v1
-				result->push_back(index);
-				index = getIndexFromListPoly((*iter)[1],shape);//v2
-				result->push_back(index);
-				index = getIndexFromListPoly((*iter)[2],shape);//v3
-				result->push_back(index);
+			if (poly.GetOrientation() == TPPL_CW) {
+				poly.SetHole(false);
+			} else {
+				poly.SetHole(true);
 			}
+			poly.SetOrientation(TPPL_CCW);
+			listPoly.push_back(poly);	
+		}
+		TPPLPartition pp;
+		pp.Triangulate_EC(&listPoly, &listResult);
+		for(auto iter = listResult.begin(); iter!=listResult.end(); iter++){
+			unsigned index;
+			index = getIndexFromListPoly((*iter)[0],shape);//v1
+			result->push_back(index);
+			index = getIndexFromListPoly((*iter)[1],shape);//v2
+			result->push_back(index);
+			index = getIndexFromListPoly((*iter)[2],shape);//v3
+			result->push_back(index);
 		}
 		results.at(i) = result;
 	}
@@ -485,9 +509,9 @@ template <class T> shared_ptr<T> initArray(T* data) {
 }
 
 void createSHP3D(const char* inSHP, const char* outSHP) {
-	fs::path inPRJPath(inSHP);
+	/*fs::path inPRJPath(inSHP);
 	if (!exists(inPRJPath)) {
-		fprintf(stderr, "%s doesn't exist\n", inPRJPath.c_str());
+		fprintf(stderr, "%s doesn't exist\n", inPRJPath.string().c_str());
 		exit(EXIT_FAILURE);
 	}
 	inPRJPath.replace_extension(".prj");
@@ -495,12 +519,25 @@ void createSHP3D(const char* inSHP, const char* outSHP) {
 	fprintf(stderr, "determining transformation....\n");
 	OGRSpatialReference sourceSRS;
 	char* prjWKT = getContent(inPRJPath);
-	sourceSRS.importFromWkt(&prjWKT);
+	OGRErr result = sourceSRS.importFromWkt(&prjWKT);
+	if (result != OGRERR_NONE) {
+		fprintf(stderr, "unable to parse WKT");
+		exit(EXIT_FAILURE);
+	}
 	OGRSpatialReference targetSRS;
-	targetSRS.SetWellKnownGeogCS("WGS84");
+	result = targetSRS.SetWellKnownGeogCS("WGS84");
+	if (result != OGRERR_NONE) {
+		fprintf(stderr, "unable to obtain WGS84 projection");
+		exit(EXIT_FAILURE);
+	}
 	OGRCoordinateTransformation* transformation;
 
 	transformation = OGRCreateCoordinateTransformation(&sourceSRS, &targetSRS);
+
+	if (transformation == NULL) {
+		fprintf(stderr, "unable to determine the transformation");
+		exit(EXIT_FAILURE);
+	}
 
 
 	fs::path inSHPPath(inSHP);
@@ -591,5 +628,5 @@ void createSHP3D(const char* inSHP, const char* outSHP) {
 
 
 	SHPClose(shpIn);
-	SHPClose(shpOut);
+	SHPClose(shpOut);*/
 }
