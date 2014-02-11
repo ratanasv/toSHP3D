@@ -1,7 +1,7 @@
 #include <cstring>
 #include <boost/filesystem.hpp>
-// #include <ogr_api.h>
-// #include <ogr_spatialref.h>
+#include <ogr_api.h>
+#include <ogr_spatialref.h>
 #include "XMLHandler.h"
 #include <list>
 #include <omp.h>

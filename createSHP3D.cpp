@@ -509,7 +509,7 @@ template <class T> shared_ptr<T> initArray(T* data) {
 }
 
 void createSHP3D(const char* inSHP, const char* outSHP) {
-	/*fs::path inPRJPath(inSHP);
+	fs::path inPRJPath(inSHP);
 	if (!exists(inPRJPath)) {
 		fprintf(stderr, "%s doesn't exist\n", inPRJPath.string().c_str());
 		exit(EXIT_FAILURE);
@@ -628,5 +628,5 @@ void createSHP3D(const char* inSHP, const char* outSHP) {
 
 
 	SHPClose(shpIn);
-	SHPClose(shpOut);*/
+	SHPClose(shpOut);
 }

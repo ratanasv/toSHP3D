@@ -6,20 +6,22 @@ using boost::filesystem::path;
 
 void main(int argc, char** argv)
 {
-	if (argc != 5) {
-		fprintf(stderr, "usage: xtrPath bumpMappingPath shp3dPath tttPath \n");
-		exit(EXIT_FAILURE);
-	}
+// 	if (argc != 5) {
+// 		fprintf(stderr, "usage: xtrPath bumpMappingPath shp3dPath tttPath \n");
+// 		exit(EXIT_FAILURE);
+// 	}
+// 
+// 	path xtrPath(argv[1]);
+// 	path bumpmappingPath(argv[2]);
+// 	path shp3dPath(argv[3]);
+// 	path tttPath(argv[4]);
+// 
+// 	createNormalTexture(bumpmappingPath.string().c_str(), xtrPath.string().c_str());
+// 	createTTTFile(tttPath.string().c_str(), shp3dPath.string().c_str());
 
-	path xtrPath(argv[1]);
-	path bumpmappingPath(argv[2]);
-	path shp3dPath(argv[3]);
-	path tttPath(argv[4]);
-
-	createNormalTexture(bumpmappingPath.string().c_str(), xtrPath.string().c_str());
-	createTTTFile(tttPath.string().c_str(), shp3dPath.string().c_str());
-
-	//createSHP3D(shpIn, shpOut);
+	const char* shpIn = "E:/Vault/WW2100/idu.shp";
+	const char* shpOut = "C:/Users/ratanasv/Desktop/idu3D.shp";
+	createSHP3D(shpIn, shpOut);
  //	createBMP("EasternOregon.bmp", "EasternOregonSnugFit.xtr");
  //	createSHP3D("iduLatLong.shp", "idu3D.shp", "EasternOregonLooseFit.xtr");
 //	createNormalTexture("iduNormal.bmp", "EasternOregonSnugFit.xtr");
