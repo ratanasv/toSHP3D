@@ -548,7 +548,7 @@ void createSHP3D(const char* inSHP, const char* outSHP) {
 
 	double minLat, maxLat, minLng, maxLng;
 	minLat = FLT_MAX; minLng = FLT_MAX;
-	maxLat = FLT_MIN; maxLng = FLT_MIN;
+	maxLat = -999999.0; maxLng = -999999.0;
 
 	for (int i=0; i<numShapes; i++) {//for each shape
 		SHPObject* shpObjIn = SHPReadObject(shpIn, i);
