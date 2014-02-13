@@ -2,6 +2,7 @@
 #include "createSHP3D.h"
 
 using namespace vir;
+using namespace std;
 namespace fs = boost::filesystem;
 //global variables
 std::shared_ptr<std::vector<double>> giveMeHeights(SHPObject* shpObjIn, struct ElevationData);
@@ -80,106 +81,6 @@ struct ElevationData readXTR(const char* fName)
 	return i_elevData;
 }
 
-std::shared_ptr<std::vector<double>> giveMeHeights(SHPObject* shpObjIn, struct ElevationData ed)
-{
-	double latRange = ed.MaxLat-ed.MinLat;
-	double lngRange = ed.MaxLng-ed.MinLng;
-	std::shared_ptr<std::vector<double>> zA(new std::vector<double>);
-	for(int i= 0; i<shpObjIn->nVertices; i++){
-		double x = shpObjIn->padfX[i];
-		double y = shpObjIn->padfY[i];
-		
-		int latI = (int)( ((y-ed.MinLat)/latRange)*((float)ed.NumLats-1.0)  );
-		int lngI = (int)( ((x-ed.MinLng)/lngRange)*((float)ed.NumLngs-1.0)  );
-		assert(latI < ed.NumLats);
-		assert(lngI < ed.NumLngs);
-		assert(lngI >= 0);
-		assert(latI >= 0);
-
-		zA->push_back( ed.Grid->at(ed.NumLngs*latI+lngI) );
-	}
-	return zA;
-}
-
-DECLDIR void createSHP3D(const char* latlong, const char* shp3d, const char* xtrN)
-{
-	SHPHandle shpIn = SHPOpen(latlong,"rb");
-	double mins[4], maxs[4];
-	int numShapes;
-	SHPGetInfo(shpIn,&numShapes,NULL,mins,maxs);
-	for(int i= 0 ;i<4; i++)
-		fprintf(stderr, "min,max %f %f \n", mins[i],maxs[i]);
-
-	struct ElevationData ed = readXTR(xtrN);
-	SHPHandle shpOut = SHPCreate(shp3d,SHPT_POLYGONZ);
-
-
-	for(int i = 0 ; i<numShapes ;i++){//for each shape
-		SHPObject* shpObjIn = SHPReadObject(shpIn, i);
-		std::shared_ptr<std::vector<double>> zA = giveMeHeights(shpObjIn, ed);
-		SHPObject* shpObjOut = SHPCreateObject(
-			SHPT_POLYGONZ,
-			shpObjIn->nShapeId,
-			shpObjIn->nParts,
-			shpObjIn->panPartStart,
-			shpObjIn->panPartType,
-			shpObjIn->nVertices,
-			shpObjIn->padfX,
-			shpObjIn->padfY,
-			zA->data(),
-			NULL
-			);
-		int entityNumber = SHPWriteObject(shpOut,-1, shpObjOut);
-		SHPDestroyObject(shpObjOut);
-		SHPDestroyObject(shpObjIn);
-	}
-
-
-	SHPClose(shpIn);
-	SHPClose(shpOut);
-}
-
-DECLDIR void createBMP(const char* name, const char* xtrN)
-{
-	struct ElevationData ed = readXTR(xtrN);
-	double hMin = DBL_MAX;
-	double hMax = DBL_MIN;
-	for(int i= 0; i<ed.NumLngs*ed.NumLats; i++)
-	{
-		double Gi = ed.Grid->at(i);
-		if(Gi>hMax)
-			hMax = Gi;
-		if(Gi<hMin)
-			hMin = Gi;
-	}
-
-	std::shared_ptr<std::vector<unsigned char>> pic(
-		new std::vector<unsigned char>(ed.NumLngs*ed.NumLats, (unsigned char)128));
-	
-	omp_set_num_threads(omp_get_num_procs());
-#pragma omp parallel for
-	for(int i = 0 ; i<ed.NumLats ;i++)
-		for(int j = 0; j<ed.NumLngs; j++)
-			pic->at(i*ed.NumLngs+j) = (ed.Grid->at(i*ed.NumLngs+j)-hMin)/(hMax-hMin)*255.0;
-#pragma omp barrier
-
-	pic = flipVertically(pic,ed.NumLngs,1);
-
-	int result = SOIL_save_image
-		(
-		name,
-		SOIL_SAVE_TYPE_BMP,
-		ed.NumLats, ed.NumLngs, 1,
-		pic->data()
-		);
-	if(result == 0)
-		fprintf(stderr, "failed to create a BMP file\n");
-	else if(result ==1)
-		fprintf(stderr, "successfully create a BMP file\n");
-	else
-		fprintf(stderr, "SOIL_save_image returned an unknown value\n");
-
-}
 
 DECLDIR void createNormalTexture(const char* image, const char* xtr)
 {
@@ -215,149 +116,6 @@ DECLDIR void createNormalTexture(const char* image, const char* xtr)
 		normals->data()
 		);
 	assert(result == 1);
-}
-
-DECLDIR void createEvenlySpacedSHP(const char* shpName, const char* xtrName)
-{
-
-	SHPHandle shpOut = SHPCreate(shpName,SHPT_POLYGON);
-	FILE* FpIn = fopen(xtrName,"rb");
-	assert(FpIn!=NULL);
-	double minX,minY,maxX,maxY;
-	int w,h;
-
-	fscanf( FpIn, "%f %f %d", &minX, &maxX, &w );
-	fscanf( FpIn, "%f %f %d", &minY, &maxY, &h);
-
-	fclose(FpIn);
-
-
-	
-	double dx = (maxX-minX)/w;
-	double dy = (maxY-minY)/h;
-
-	for(int i =0; i<h-1; i++){
-		for(int j =0; j<w-1; j++){
-			dA x = dA(new dV(5, 0.0));
-			dA y = dA(new dV(5, 0.0));
-			x->at(0) = minX+j*dx;
-			y->at(0) = minY+i*dy;
-			x->at(1) = x->at(0)+dx;
-			y->at(1) = y->at(0);
-			x->at(2) = x->at(0)+dx;
-			y->at(2) = y->at(0)+dy;
-			x->at(3) = x->at(0);
-			y->at(3) = y->at(0)+dy;
-			x->at(4) = x->at(0);
-			y->at(4) = y->at(0);
-			SHPObject* shpObjOut = SHPCreateSimpleObject(
-				SHPT_POLYGON,5,x->data(),y->data(),NULL);
-			int entityNumber = SHPWriteObject(shpOut,-1, shpObjOut);
-			SHPDestroyObject(shpObjOut);
-		}
-	}
-	
-	SHPClose(shpOut);
-}
-
-
-DECLDIR void createBMPwithSHP(const char* shpFile, const char* bmpFile, const char* xtrN)
-{
-	SHPHandle shpIn = SHPOpen(shpFile,"rb");
-	double mins[4], maxs[4];
-	int numShapes;
-	SHPGetInfo(shpIn,&numShapes,NULL,mins,maxs);
-	for(int i= 0 ;i<4; i++)
-		fprintf(stderr, "%s min,max %f %f \n", shpFile, mins[i],maxs[i]);
-
-	struct ElevationData ed = readXTR(xtrN);
-	double hMin = DBL_MAX;
-	double hMax = DBL_MIN;
-	for(int i= 0; i<ed.NumLngs*ed.NumLats; i++)
-	{
-		double Gi = ed.Grid->at(i);
-		if(Gi>hMax)
-			hMax = Gi;
-		if(Gi<hMin)
-			hMin = Gi;
-	}
-
-	std::shared_ptr<std::vector<unsigned char>> pic(
-		new std::vector<unsigned char>(ed.NumLngs*ed.NumLats, (unsigned char)128));
-
-	SHPObject* shape = SHPReadObject(shpIn,0);
-	assert(shape != NULL);
-	dA heights = giveMeHeights(shape,ed);
-	for(int i= 0 ;i<ed.NumLngs*ed.NumLats;i++)
-		pic->at(i) = (heights->at(i)-hMin)/hMax*255.0;
-
-	SHPDestroyObject(shape);	
-	
-
-	pic = flipVertically(pic,ed.NumLngs,1);
-
-	int result = SOIL_save_image
-		(
-		bmpFile,
-		SOIL_SAVE_TYPE_BMP,
-		ed.NumLats, ed.NumLngs, 1,
-		pic->data()
-		);
-	assert(result == 1);
-	SHPClose(shpIn);
-	
-}
-
-DECLDIR void createBMPwithSHP3D(const char* shpFile, const char* bmpFile, int dim)
-{
-	SHPHandle shpIn = SHPOpen(shpFile,"rb");
-	double mins[4], maxs[4];
-	int numShapes, shpType;
-	SHPGetInfo(shpIn,&numShapes,&shpType,mins,maxs);
-	for(int i= 0 ;i<4; i++)
-		fprintf(stderr, "%s min,max %f %f \n", shpFile, mins[i],maxs[i]);
-	assert(shpType == SHPT_POLYGONZ);
-
-	std::shared_ptr<std::vector<unsigned char>> pic(
-		new std::vector<unsigned char>(dim*dim*3, (unsigned char)65));
-
-	for(int i= 0; i<numShapes;i++){
-		SHPObject* shape = SHPReadObject(shpIn,i);
-		assert(shape != NULL);
-		for(int j= 0; j<shape->nVertices; j++){
-			double x = shape->padfX[j];
-			double y= shape->padfY[j];
-			int xi = (x-mins[0])/(maxs[0]-mins[0])*((float)dim - 1.0);
-			int yi = (y-mins[1])/(maxs[1]-mins[1])*((float)dim - 1.0);
-
-
-			double z= shape->padfZ[j];//the height value
-			z = 220.0 - (z-mins[2])/(maxs[2]-mins[2])*220.0;//scale it
-			float rgb[3];
-			float hsv[3] = {z,1.0,1.0};
-			HSVtoRGB(hsv,rgb);
-			assert(xi <dim);
-			assert(yi<dim);
-			pic->at(yi*dim*3+xi*3+0) = rgb[0]*255.0;
-			pic->at(yi*dim*3+xi*3+1) = rgb[1]*255.0;
-			pic->at(yi*dim*3+xi*3+2) = rgb[2]*255.0;
-		}
-		SHPDestroyObject(shape);
-	}
-
-	pic = flipVertically(pic,dim,3);
-
-	int result = SOIL_save_image
-		(
-		bmpFile,
-		SOIL_SAVE_TYPE_BMP,
-		dim, dim, 3,
-		pic->data()
-		);
-	assert(result == 1);
-
-	SHPClose(shpIn);
-	
 }
 
 
@@ -508,17 +266,33 @@ template <class T> shared_ptr<T> initArray(T* data) {
 	});
 }
 
-void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
-	fs::path inPRJPath(inSHP);
-	if (!exists(inPRJPath)) {
-		fprintf(stderr, "%s doesn't exist\n", inPRJPath.string().c_str());
+void copyFile(const fs::path& in, const fs::path& out) {
+	if (!exists(in)) {
+		fprintf(stderr, "%s doesn't exist\n", in.string().c_str());
 		exit(EXIT_FAILURE);
 	}
-	inPRJPath.replace_extension(".prj");
+
+	ifstream source(in.string().c_str(), ios::binary);
+	ofstream dest(out.string().c_str(), ios::binary);
+
+	dest << source.rdbuf();
+
+	source.close();
+	dest.close();
+}
+
+void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
+	fs::path inputShpPath(inSHP);
+	if (!exists(inputShpPath)) {
+		fprintf(stderr, "%s doesn't exist\n", inputShpPath.string().c_str());
+		exit(EXIT_FAILURE);
+	}
+	fs::path inPrjPath = inputShpPath;
+	inPrjPath.replace_extension(".prj");
 
 	fprintf(stderr, "determining transformation....\n");
 	OGRSpatialReference sourceSRS;
-	char* prjWKT = getContent(inPRJPath);
+	char* prjWKT = getContent(inPrjPath);
 	OGRErr result = sourceSRS.importFromWkt(&prjWKT);
 	if (result != OGRERR_NONE) {
 		fprintf(stderr, "unable to parse WKT");
@@ -636,4 +410,20 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 
 	SHPClose(shpIn);
 	SHPClose(shpOut);
+
+	fs::path outPrjPath(outSHP);
+	outPrjPath.replace_extension(".prj");
+	copyFile(inPrjPath, outPrjPath);
+
+	fs::path outDbfPath(outSHP);
+	outDbfPath.replace_extension(".dbf");
+	fs::path inDbfPath(inSHP);
+	inDbfPath.replace_extension(".dbf");
+	copyFile(inDbfPath, outDbfPath);
+
+	fs::path outXmlPath(outSHP);
+	outXmlPath.replace_extension(".xml");
+	fs::path inXmlPath(inSHP);
+	inXmlPath.replace_extension(".xml");
+	copyFile(inXmlPath, outXmlPath);
 }

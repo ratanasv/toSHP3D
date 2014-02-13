@@ -39,12 +39,8 @@ struct ElevationData{
 
 
 struct ElevationData readXTR(const char* fName);
-DECLDIR void createSHP3D(const char* latlong, const char* shp3d, const char* xtrN);
-DECLDIR void createBMP(const char* name, const char* xtrN);
 DECLDIR void createNormalTexture(const char* image, const char* xtr);
-DECLDIR void createEvenlySpacedSHP(const char* shpName, const char* xtrName);
-DECLDIR void createBMPwithSHP(const char* shpFile, const char* bmpFile, const char* xtrN);
-DECLDIR void createBMPwithSHP3D(const char* shpFile, const char* bmpFile, int dim);
+
 DECLDIR std::shared_ptr<std::vector<double>> getSHPInfo(const char* shpName);
 DECLDIR void createTTTFile(const char* tName, const char* shpName);
 
