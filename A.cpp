@@ -18,10 +18,7 @@ void main(int argc, char** argv)
 // 
 // 	createNormalTexture(bumpmappingPath.string().c_str(), xtrPath.string().c_str());
 // 	createTTTFile(tttPath.string().c_str(), shp3dPath.string().c_str());
-
-	const char* shpIn = "E:/Vault/WW2100/idu.shp";
-	const char* shpOut = "C:/Users/ratanasv/Desktop/idu3D.shp";
-	createSHP3D(shpIn, shpOut);
+	createSHP3D(argv[1], argv[2], 2048);
  //	createBMP("EasternOregon.bmp", "EasternOregonSnugFit.xtr");
  //	createSHP3D("iduLatLong.shp", "idu3D.shp", "EasternOregonLooseFit.xtr");
 //	createNormalTexture("iduNormal.bmp", "EasternOregonSnugFit.xtr");

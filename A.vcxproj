@@ -83,7 +83,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(VAULT_DIR)mega_soln/$(Platform)/$(PlatformToolset)/$(Configuration);$(VAULT_DIR)gdalwin32-1.4.1\lib;$(VAULT_DIR)boost_1_54_0\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Wldap32.lib;Ws2_32.lib;XMLHandler.lib;polypartition.lib;OpenGL32.lib;libSOIL.lib;shapelib.lib;libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>gdal_i.lib;Wldap32.lib;Ws2_32.lib;XMLHandler.lib;polypartition.lib;OpenGL32.lib;libSOIL.lib;shapelib.lib;libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

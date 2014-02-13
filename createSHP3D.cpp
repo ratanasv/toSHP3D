@@ -508,7 +508,7 @@ template <class T> shared_ptr<T> initArray(T* data) {
 	});
 }
 
-void createSHP3D(const char* inSHP, const char* outSHP) {
+void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 	fs::path inPRJPath(inSHP);
 	if (!exists(inPRJPath)) {
 		fprintf(stderr, "%s doesn't exist\n", inPRJPath.string().c_str());
@@ -580,8 +580,8 @@ void createSHP3D(const char* inSHP, const char* outSHP) {
 	}
 
 	fprintf(stderr, "connecting to DEM server with query %f %f %f %f %d %d \n", 
-		minLng, maxLng, minLat, maxLat, 2048, 2048);
-	MikeDEM demHeightField(minLng, maxLng, minLat, maxLat, 2048, 2048);
+		minLng, maxLng, minLat, maxLat, resolution, resolution);
+	MikeDEM demHeightField(minLng, maxLng, minLat, maxLat, resolution, resolution);
 
 
 	fprintf(stderr, "creating 3D shapefile.... \n");
@@ -591,9 +591,14 @@ void createSHP3D(const char* inSHP, const char* outSHP) {
 	for (int i=0; i<numShapes; i++) {
 		SHPObject* shpObjIn = SHPReadObject(shpIn, i);
 
+		const int numVertices = shpObjIn->nVertices;
+		double* xVertices = new double[numVertices];
+		double* yVertices = new double[numVertices];
+		memcpy(xVertices, shpObjIn->padfX, sizeof(double)*numVertices);
+		memcpy(yVertices, shpObjIn->padfX, sizeof(double)*numVertices);
 
 		bool isSuccessful = transformation->Transform(
-			shpObjIn->nVertices, shpObjIn->padfX, shpObjIn->padfY);
+			shpObjIn->nVertices, xVertices, yVertices);
 
 		if (!isSuccessful) {
 			fprintf(stderr, "failed to project shp no. %d\n", i);
@@ -603,9 +608,11 @@ void createSHP3D(const char* inSHP, const char* outSHP) {
 		double* heights = new double[shpObjIn->nVertices];
 
 		for (int j=0; j<shpObjIn->nVertices; j++) {
-			heights[j] = demHeightField.elevAt(
-				shpObjIn->padfX[j], shpObjIn->padfY[j]);
+			heights[j] = demHeightField.elevAt(xVertices[j], yVertices[j]);
 		}
+
+		delete[] xVertices;
+		delete[] yVertices;
 
 		SHPObject* shpObjOut = SHPCreateObject(
 			SHPT_POLYGONZ,
