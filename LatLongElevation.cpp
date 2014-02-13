@@ -9,42 +9,60 @@
 using std::ostringstream;
 
 static const string MIKEDEM_BASE_URL("http://maverick.coas.oregonstate.edu:11300/terrainextraction.ashx?");
-static const string XTR_FILENAME("temp.xtr");
+
+
+typedef struct {
+	char* _data;
+	size_t _size;
+} CurlData;
+
+size_t write_data(void *ptr, size_t size, size_t count, void *stream) {
+	CurlData* curlData = (CurlData*)stream;
+	char* buffer = new char[size*count];
+	memcpy(buffer, ptr, size*count);
+	size_t newSize = curlData->_size + size*count;
+	char* newData = new char[newSize];
+	if (curlData->_size != 0) {
+		memcpy(newData, curlData->_data, curlData->_size);
+	} 
+	memcpy(newData + curlData->_size, buffer, size*count);
+	delete[] curlData->_data;
+	curlData->_data = newData;
+	curlData->_size = newSize;
+	return size*count;
+}
 
 MikeDEM::MikeDEM(float lngMin, float lngMax, float latMin, float latMax,
 	int numLngs, int numLats) : NUM_LNGS(numLngs), NUM_LATS(numLats),
-	LNG_MIN(lngMin), LNG_MAX(lngMax), LAT_MIN(latMin), LAT_MAX(latMax) {
+	LNG_MIN(lngMin), LNG_MAX(lngMax), LAT_MIN(latMin), LAT_MAX(latMax) 
+{
 
-	shared_ptr<CURL> curl(curl_easy_init(), [](CURL* c){
+	shared_ptr<CURL> curl(curl_easy_init(), [](CURL* c) {
 		curl_easy_cleanup(c);
 	});
-	CURLcode res;
 
 	if (!curl) {
 		throw CurlInitException("curl_easy_init failed");
 	}
 
+	CurlData curlData = {NULL, 0};
+
 	auto queryString = createQueryString(MIKEDEM_BASE_URL);
 	curl_easy_setopt(curl.get(), CURLOPT_URL, queryString.c_str());
 	curl_easy_setopt(curl.get(), CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, &curlData);
+	curl_easy_setopt(curl.get(), CURLOPT_WRITEFUNCTION, write_data);
+	curl_easy_setopt(curl.get(), CURLOPT_VERBOSE, 1);
 
-	{
-		shared_ptr<FILE> xtrFile(fopen(XTR_FILENAME.c_str(), "wb"), [](FILE* f){
-			fclose(f);
-		});
 
-		if (!xtrFile) {
-			throw runtime_error("can't open XTR file");
-		}
-		curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, xtrFile.get());
-		res = curl_easy_perform(curl.get());
-	}
+	CURLcode res = curl_easy_perform(curl.get());
+	
 	
 	if (res != CURLE_OK) {
 		throw CurlConnectionException(curl_easy_strerror(res));
 	}
 
-	initHeightWithXTR();
+	initHeightWithXTR(curlData._data);
 }
 
 float MikeDEM::elevAt( float longtitude, float latitude ) {
@@ -70,36 +88,39 @@ string MikeDEM::createQueryString( const string& baseURL ) {
 	return string(ss.str());
 }
 
-void MikeDEM::initHeightWithXTR () {
-	shared_ptr<FILE> xtrFile(fopen(XTR_FILENAME.c_str(), "rb"), [](FILE* f){
-		fclose(f);
-		remove(XTR_FILENAME.c_str());
-	});
-	assert(xtrFile.get() != NULL);
-
+void MikeDEM::initHeightWithXTR(char* data) {
 	const char FORM_FEED =  0x0c;
 
-	float minLng, maxLng, minLat, maxLat;
-	int numLngs, numLats;
+	size_t iterator = 0;
+	while (data[iterator++] != FORM_FEED) {
 
-	fscanf( xtrFile.get(), "%f %f %d", &minLng, &maxLng, &numLngs );
-	fscanf( xtrFile.get(), "%f %f %d", &minLat, &maxLat, &numLats );
-	assert(numLngs == NUM_LNGS);
-	assert(numLats == NUM_LATS);
+	}
 
-	int c;
-	do
-	{
-		c = fgetc( xtrFile.get() );
-	} while( c != FORM_FEED );
-	// 	c = fgetc( FpIn );                      // the '\n'
-	// 	if( c != '\n' )
-	// 		fprintf( stderr, "Should have found a '\\n' -- but found '%c'\n", c );
+// 	float minLng, maxLng, minLat, maxLat;
+// 	int numLngs, numLats;
+// 
+// 	memcpy(&minLng, data + iterator, sizeof(float));
+// 	iterator = iterator + sizeof(float);
+// 	memcpy(&maxLng, data + iterator, sizeof(float));
+// 	iterator = iterator + sizeof(float);
+// 	memcpy(&numLngs, data + iterator, sizeof(int));
+// 	iterator = iterator + sizeof(int);
+// 	memcpy(&minLat, data + iterator, sizeof(float));
+// 	iterator = iterator + sizeof(float);
+// 	memcpy(&maxLat, data + iterator, sizeof(float));
+// 	iterator = iterator + sizeof(float);
+// 	memcpy(&numLats, data + iterator, sizeof(int));
+// 	iterator = iterator + sizeof(int);
+// 
+// 	assert(numLngs == NUM_LNGS);
+// 	assert(numLats == NUM_LATS);
 
 	vector<float>* hVec = new vector<float>(NUM_LNGS * NUM_LATS, 0.0);
 
-	for( int y = 0; y < NUM_LATS; y++ )
-		fread( &((*hVec)[y*NUM_LNGS]), sizeof(float), NUM_LNGS, xtrFile.get() );
+	for (int y = 0; y<NUM_LATS; y++) {
+		memcpy( &((*hVec)[y*NUM_LNGS]), data + iterator, sizeof(float)*NUM_LNGS);
+		iterator = iterator + sizeof(float)*NUM_LNGS;
+	}
 
 	elevationData.reset(hVec);
 }

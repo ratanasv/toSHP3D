@@ -26,6 +26,7 @@ public:
 	virtual float elevAt(float longtitude, float latitude) = 0;
 };
 
+
 class MikeDEM : LatLongElevation {
 private:
 	const int NUM_LNGS;
@@ -42,7 +43,7 @@ public:
 	virtual float elevAtIndex(int lngI, int latI);
 protected:
 	string createQueryString(const string& baseURL);
-	void initHeightWithXTR();
+	void initHeightWithXTR(char* data);
 
 private:
 	MikeDEM(const MikeDEM& other);
