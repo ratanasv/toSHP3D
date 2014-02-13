@@ -595,10 +595,10 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 		double* xVertices = new double[numVertices];
 		double* yVertices = new double[numVertices];
 		memcpy(xVertices, shpObjIn->padfX, sizeof(double)*numVertices);
-		memcpy(yVertices, shpObjIn->padfX, sizeof(double)*numVertices);
+		memcpy(yVertices, shpObjIn->padfY, sizeof(double)*numVertices);
 
 		bool isSuccessful = transformation->Transform(
-			shpObjIn->nVertices, xVertices, yVertices);
+			numVertices, xVertices, yVertices);
 
 		if (!isSuccessful) {
 			fprintf(stderr, "failed to project shp no. %d\n", i);
