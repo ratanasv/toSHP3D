@@ -1,5 +1,4 @@
 #pragma once
-#include <stdexcept>
 #include <cstring>
 #include <memory>
 #include <vector>
@@ -10,15 +9,6 @@ using std::shared_ptr;
 using std::vector;
 using std::out_of_range;
 
-class CurlInitException : runtime_error {
-public:
-	CurlInitException(const string& what) : runtime_error(what) {};
-};
-
-class CurlConnectionException : runtime_error {
-public:
-	CurlConnectionException(const string& what) : runtime_error(what) {};
-};
 
 class LatLongElevation {
 public:
@@ -26,7 +16,9 @@ public:
 	virtual float elevAt(double longtitude, double latitude) const = 0;
 };
 
-
+/** 
+ * Immutable class, so thread-safe.
+ */
 class MikeDEM : LatLongElevation {
 private:
 	const int NUM_LNGS;
@@ -38,7 +30,7 @@ private:
 	shared_ptr<vector<float>> elevationData;
 public:
 	MikeDEM(double lngMin, double lngMax, double latMin, double latMax, 
-		int numLngs, int numLats);
+		int numLngs, int numLats); //throws CurlInitException, CurlConnectionException;
 	virtual float elevAt(double longtitude, double latitude) const;
 	virtual float elevAtIndex(int lngI, int latI) const;
 protected:

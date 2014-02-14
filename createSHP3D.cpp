@@ -8,6 +8,29 @@ namespace fs = boost::filesystem;
 //global variables
 std::shared_ptr<std::vector<double>> giveMeHeights(SHPObject* shpObjIn, struct ElevationData);
 
+
+template<class T> shared_ptr<T> initCStyleArray(T* data) {
+	return shared_ptr<T>(data, [](T* tData) {
+		delete[] tData;
+	});
+}
+
+template<class T> shared_ptr<vector<T>> initVectorArray() {
+	return shared_ptr<vector<T>>(new vector<T>());
+}
+
+shared_ptr<SHPObject> initShape(SHPObject* shp) {
+	return shared_ptr<SHPObject>(shp, [](SHPObject* shpData) {
+		SHPDestroyObject(shpData);
+	});
+}
+
+shared_ptr<SHPInfo> initShapeHandle(SHPInfo* shpInfo) {
+	return shared_ptr<SHPInfo>(shpInfo, [](SHPInfo* shpInfoHandle) {
+		SHPClose(shpInfoHandle);
+	});
+}
+
 void HSVtoRGB(float hsv[3], float rgb[3])
 {
 	float tmp1 = hsv[2] * (1-hsv[1]);
@@ -187,15 +210,15 @@ static unsigned getIndexFromListPoly(TPPLPoint& Point,
 
 void createTTTFile(const char* tName, const char* shpName)
 {
-	SMART_SHAPE_HANDLE(shp_handle, shpName)
+	auto shp_handle = initShapeHandle(SHPOpen(shpName, "rb"));
 	int num_shapes;
 	SHPGetInfo(shp_handle.get(), &num_shapes, NULL, NULL, NULL);
 	vector<shared_ptr<vector<unsigned>>> results(num_shapes, 
 		shared_ptr<vector<unsigned>>(NULL));
 	
 	for(int i =0; i<num_shapes;i++) {
-		SMART_SHAPE(shape, shp_handle, i);
-		SMART_ARRAY(result, unsigned);
+		auto shape = initShape(SHPReadObject(shp_handle.get(), i));
+		auto result = initVectorArray<unsigned>();
 		list<TPPLPoly> listPoly, listResult;
 		for(int j = 0; j<shape->nParts;j++){
 			int first = shape->panPartStart[j];
@@ -238,9 +261,9 @@ void createTTTFile(const char* tName, const char* shpName)
 	FILE* tri_file = fopen(tName, "wb");
 	fwrite(&num_shapes, sizeof(int), 1, tri_file);
 	fwrite(&num_shapes, sizeof(int), 1, tri_file);
-	for(int i=0; i<num_shapes; i++){
+	for (int i=0; i<num_shapes; i++) {
 		auto result = results.at(i);
-		SMART_SHAPE(shape, shp_handle, i)
+		auto shape = initShape(SHPReadObject(shp_handle.get(), i));
 		for(int j=0; j<result->size(); j++){
 			unsigned index = result->at(j)+accumulative;
 			fwrite(&index, sizeof(unsigned), 1, tri_file);
@@ -253,7 +276,7 @@ void createTTTFile(const char* tName, const char* shpName)
 	fclose(tri_file);
 }
 
-char* getContent(const fs::path& path) {
+shared_ptr<char> getContent(const fs::path& path) {
 	shared_ptr<FILE> file (fopen(path.string().c_str(), "rb"), [](FILE* fp) {
 		fclose(fp);
 	});
@@ -266,20 +289,12 @@ char* getContent(const fs::path& path) {
 	long size = ftell(file.get());
 
 	fseek(file.get(), 0L, SEEK_SET);
-	char* buffer = new char[size+1];
-	fread(buffer, 1, size, file.get());
+	auto buffer = initCStyleArray(new char[size+1]);
+	fread(buffer.get(), 1, size, file.get());
 
-	buffer[size] = '\0';
+	(buffer.get())[size] = '\0';
 
 	return buffer;
-}
-
-
-
-template <class T> shared_ptr<T> initArray(T* data) {
-	return shared_ptr<T>(data, [](T* ptr) {
-		delete[] ptr;
-	});
 }
 
 void copyFile(const fs::path& in, const fs::path& out) {
@@ -309,11 +324,12 @@ string stringf(const char* format, ... ) {
 	return result;
 }
 
-OGRCoordinateTransformation* getTransformation(char* prjWktSource) {
+OGRCoordinateTransformation* getTransformation(shared_ptr<char> prjWktSource) {
 
 	OGRSpatialReference sourceSRS;
+	char* rawPtr = prjWktSource.get();
 	
-	OGRErr result = sourceSRS.importFromWkt(&prjWktSource);
+	OGRErr result = sourceSRS.importFromWkt(&rawPtr);
 	if (result != OGRERR_NONE) {
 		throw OGRTransformationError("unable to parse WKT");
 	}
@@ -390,10 +406,10 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 
 	fs::path inPrjPath = inputShpPath;
 	inPrjPath.replace_extension(".prj");
-	char* prjWKT = getContent(inPrjPath);
+	auto prjWKTBuffer = getContent(inPrjPath);
 
 	fprintf(stderr, "determining transformation....\n");
-	OGRCoordinateTransformation* transformation = getTransformation(prjWKT);
+	OGRCoordinateTransformation* transformation = getTransformation(prjWKTBuffer);
 
 
 	fs::path inSHPPath(inSHP);

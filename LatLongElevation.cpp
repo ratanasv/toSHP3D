@@ -4,6 +4,7 @@
 #include <curl/curl.h>
 #include <cassert>
 #include <sstream>
+#include "Exception.h"
 
 
 using std::ostringstream;
