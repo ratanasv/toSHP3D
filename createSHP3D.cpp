@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "createSHP3D.h"
+#include "Exception.h"
 
 using namespace vir;
 using namespace std;
@@ -70,25 +71,25 @@ struct ElevationData readXTR(const char* fName)
 // 	if( c != '\n' )
 // 		fprintf( stderr, "Should have found a '\\n' -- but found '%c'\n", c );
 
-	std::vector<float>* hVec = new std::vector<float>(i_elevData.NumLngs * i_elevData.NumLats,3.14);
+	vector<float>* hVec = new vector<float>(i_elevData.NumLngs * i_elevData.NumLats,3.14);
 
 
 	for( int y = 0; y < i_elevData.NumLats; y++ )
 		fread( &((*hVec)[y*i_elevData.NumLngs]), sizeof(float), i_elevData.NumLngs, FpIn );
 	
 	fclose(FpIn);
-	i_elevData.Grid = std::shared_ptr<std::vector<float>>(hVec);
+	i_elevData.Grid = shared_ptr<vector<float>>(hVec);
 	return i_elevData;
 }
 
 
-DECLDIR void createNormalTexture(const char* image, const MikeDEM& dem, 
+void createNormalTexture(const char* image, const MikeDEM& dem, 
 	const double minX, const double maxX, const double minY, const double maxY, 
 	OGRCoordinateTransformation* transformation, const int resolution)
 {
 	using Angel::vec3;
 
-	shared_ptr<std::vector<unsigned char>> normals(
+	shared_ptr<vector<unsigned char>> normals(
 		new vector<unsigned char>(resolution*resolution*3, (unsigned char)0));
 
 	double dx = (maxX-minX)/(double)resolution;
@@ -134,7 +135,7 @@ DECLDIR void createNormalTexture(const char* image, const MikeDEM& dem,
 }
 
 
-DECLDIR std::shared_ptr<std::vector<double>> getSHPInfo(const char* shpName)
+shared_ptr<vector<double>> getSHPInfo(const char* shpName)
 {
 	FILE* fp = fopen(shpName, "rb");
 	fseek(fp, 32, SEEK_SET);
@@ -146,7 +147,7 @@ DECLDIR std::shared_ptr<std::vector<double>> getSHPInfo(const char* shpName)
 	
 	
 
-	std::shared_ptr<std::vector<double>> MinsMaxs(new std::vector<double>);
+	shared_ptr<vector<double>> MinsMaxs(new vector<double>);
 	SHPHandle shpIn = SHPOpen(shpName,"rb");
 	assert(shpIn != NULL);
 	double mins[4], maxs[4];
@@ -174,7 +175,7 @@ DECLDIR std::shared_ptr<std::vector<double>> getSHPInfo(const char* shpName)
 }
 
 static unsigned getIndexFromListPoly(TPPLPoint& Point,
-	std::shared_ptr<SHPObject>& shp)
+	shared_ptr<SHPObject>& shp)
 {
 	float EPS = 0.000000000000001;
 	for(int i = 0; i<shp->nVertices; i++)//search thru to find what we want
@@ -184,7 +185,7 @@ static unsigned getIndexFromListPoly(TPPLPoint& Point,
 	return 0;
 }
 
-DECLDIR void createTTTFile(const char* tName, const char* shpName)
+void createTTTFile(const char* tName, const char* shpName)
 {
 	SMART_SHAPE_HANDLE(shp_handle, shpName)
 	int num_shapes;
@@ -296,46 +297,49 @@ void copyFile(const fs::path& in, const fs::path& out) {
 	dest.close();
 }
 
-void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
-	fs::path inputShpPath(inSHP);
-	if (!exists(inputShpPath)) {
-		fprintf(stderr, "%s doesn't exist\n", inputShpPath.string().c_str());
-		exit(EXIT_FAILURE);
-	}
-	fs::path inPrjPath = inputShpPath;
-	inPrjPath.replace_extension(".prj");
+string stringf(const char* format, ... ) {
+	va_list	args;
+	va_start(args, format);
+	int	size = vsnprintf(NULL, 0, format, args);
+	char* buffer = new char[size + 1];
+	vsnprintf(buffer, size + 1, format, args);
+	va_end(args);
+	string result(buffer);
+	delete[] buffer;
+	return result;
+}
 
-	fprintf(stderr, "determining transformation....\n");
+OGRCoordinateTransformation* getTransformation(char* prjWktSource) {
+
 	OGRSpatialReference sourceSRS;
-	char* prjWKT = getContent(inPrjPath);
-	OGRErr result = sourceSRS.importFromWkt(&prjWKT);
+	
+	OGRErr result = sourceSRS.importFromWkt(&prjWktSource);
 	if (result != OGRERR_NONE) {
-		fprintf(stderr, "unable to parse WKT");
-		exit(EXIT_FAILURE);
+		throw OGRTransformationError("unable to parse WKT");
 	}
 	OGRSpatialReference targetSRS;
 	result = targetSRS.SetWellKnownGeogCS("WGS84");
 	if (result != OGRERR_NONE) {
-		fprintf(stderr, "unable to obtain WGS84 projection");
-		exit(EXIT_FAILURE);
+		throw OGRTransformationError("unable to obtain WGS84 projection");
 	}
-	OGRCoordinateTransformation* transformation;
+	
 
-	transformation = OGRCreateCoordinateTransformation(&sourceSRS, &targetSRS);
+	auto transformation = OGRCreateCoordinateTransformation(&sourceSRS, &targetSRS);
 
 	if (transformation == NULL) {
-		fprintf(stderr, "unable to determine the transformation");
-		exit(EXIT_FAILURE);
+		throw OGRTransformationError("unable to determine the transformation");
 	}
 
+	return transformation;
+}
 
-	fs::path inSHPPath(inSHP);
-	SHPHandle shpIn = SHPOpen(inSHPPath.string().c_str(),"rb");
+MikeDEM computeMinsMaxs(SHPHandle shpIn, OGRCoordinateTransformation* transformation,
+	double& minLng, double& maxLng, double& minLat, double& maxLat) 
+{
 	double mins[4], maxs[4];
 	int numShapes;
 	SHPGetInfo(shpIn,&numShapes,NULL,mins,maxs);
 
-	double minLat, maxLat, minLng, maxLng;
 	minLat = FLT_MAX; minLng = FLT_MAX;
 	maxLat = -999999.0; maxLng = -999999.0;
 
@@ -348,8 +352,7 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 			bool isSuccessful = transformation->Transform(1, &x, &y);
 
 			if (!isSuccessful) {
-				fprintf(stderr, "failed to project shp no. %d point no. %d\n", i, j);
-				exit(EXIT_FAILURE);
+				throw runtime_error(stringf("failed to project shp no. %d point no. %d\n", i, j));
 			}
 
 			if (x < minLng) {
@@ -367,16 +370,45 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 		}
 		SHPDestroyObject(shpObjIn);
 	}
+
+}
+
+void computeCushion(double& minLng, double& maxLng, double& minLat, double& maxLat) {
 	double cushionX = (maxLng-minLng)*0.1; 
 	double cushionY = (maxLat-minLat)*0.1;
+	minLng = minLng - cushionX;
+	maxLng = maxLng + cushionX;
+	minLat = minLat - cushionY;
+	maxLat = maxLat + cushionY;
+}
 
-	MikeDEM demHeightField(minLng - cushionX, maxLng + cushionX, minLat - cushionY, 
-		maxLat + cushionY, resolution, resolution);
+void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
+	fs::path inputShpPath(inSHP);
+	if (!exists(inputShpPath)) {
+		throw runtime_error(inputShpPath.string() + "doesn't exist");
+	}
 
+	fs::path inPrjPath = inputShpPath;
+	inPrjPath.replace_extension(".prj");
+	char* prjWKT = getContent(inPrjPath);
+
+	fprintf(stderr, "determining transformation....\n");
+	OGRCoordinateTransformation* transformation = getTransformation(prjWKT);
+
+
+	fs::path inSHPPath(inSHP);
+	SHPHandle shpIn = SHPOpen(inSHPPath.string().c_str(),"rb");
+	double minLng, maxLng, minLat, maxLat;
+	computeMinsMaxs(shpIn, transformation, minLng, maxLng, minLat, maxLat);
+	computeCushion(minLng, maxLng, minLat, maxLat);
+	MikeDEM demHeightField(minLng, maxLng, minLat, maxLat, resolution, resolution);
 
 	fprintf(stderr, "creating 3D shapefile.... \n");
 	SHPHandle shpOut = SHPCreate(outSHP,SHPT_POLYGONZ);
 
+	double mins[4], maxs[4];
+	int numShapes;
+	SHPGetInfo(shpIn, &numShapes, NULL, mins, maxs);
 
 	for (int i=0; i<numShapes; i++) {
 		SHPObject* shpObjIn = SHPReadObject(shpIn, i);

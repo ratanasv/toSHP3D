@@ -44,11 +44,6 @@ public:
 protected:
 	string createQueryString(const string& baseURL);
 	void initHeightWithXTR(char* data);
-
-private:
-	MikeDEM(const MikeDEM& other);
-	const MikeDEM& operator=(const MikeDEM& other);
-	
 };
 
 

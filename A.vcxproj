@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="createSHP3D.h" />
+    <ClInclude Include="Exception.h" />
     <ClInclude Include="LatLongElevation.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
