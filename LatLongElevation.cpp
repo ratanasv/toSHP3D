@@ -14,20 +14,28 @@ static const string MIKEDEM_BASE_URL("http://maverick.coas.oregonstate.edu:11300
 typedef struct {
 	char* _data;
 	size_t _size;
+	size_t _capacity;
 } CurlData;
 
 size_t write_data(void *ptr, size_t size, size_t count, void *stream) {
 	CurlData* curlData = (CurlData*)stream;
-	char* buffer = new char[size*count];
-	memcpy(buffer, ptr, size*count);
+
 	size_t newSize = curlData->_size + size*count;
-	char* newData = new char[newSize];
-	if (curlData->_size != 0) {
+	if (newSize > curlData->_capacity) {
+		size_t toBeAllocated = curlData->_capacity*2;;
+		while (toBeAllocated < newSize) {
+			toBeAllocated = toBeAllocated*2;
+		}
+		char* newData = new char[toBeAllocated];
+
 		memcpy(newData, curlData->_data, curlData->_size);
-	} 
-	memcpy(newData + curlData->_size, buffer, size*count);
-	delete[] curlData->_data;
-	curlData->_data = newData;
+
+		delete[] curlData->_data;
+		curlData->_data = newData;
+		curlData->_capacity = toBeAllocated;
+	}
+	
+	memcpy(curlData->_data + curlData->_size, ptr, size*count);
 	curlData->_size = newSize;
 	return size*count;
 }
