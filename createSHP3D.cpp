@@ -82,37 +82,52 @@ struct ElevationData readXTR(const char* fName)
 }
 
 
-DECLDIR void createNormalTexture(const char* image, const char* xtr)
+DECLDIR void createNormalTexture(const char* image, const MikeDEM& dem, 
+	const double minX, const double maxX, const double minY, const double maxY, 
+	OGRCoordinateTransformation* transformation, const int resolution)
 {
-	struct ElevationData ed = readXTR(xtr);
+	using Angel::vec3;
 
-	std::shared_ptr<std::vector<unsigned char>> normals(
-		new std::vector<unsigned char>(ed.NumLngs*ed.NumLats*3, (unsigned char)0));
+	shared_ptr<std::vector<unsigned char>> normals(
+		new vector<unsigned char>(resolution*resolution*3, (unsigned char)0));
 
-	std::shared_ptr<std::vector<float>> Grid = ed.Grid;
-
-	int w = ed.NumLngs; int h = ed.NumLats;
+	double dx = (maxX-minX)/(double)resolution;
+	double dy = (maxY-minY)/(double)resolution;
 
 	omp_set_num_threads(omp_get_num_procs());
 #pragma omp parallel for
-	for(int i =1; i<h-1; i++){
-		for(int j =1; j<w-1; j++){
-			Angel::vec3 d1(2,0,Grid->at(w*i+j+1)-Grid->at(w*i+j-1));
-			Angel::vec3 d2(0,2,Grid->at(w*(i+1)+j)-Grid->at(w*(i-1)+j));
-			Angel::vec3 c = normalize(cross(d1,d2));
-			normals->at(w*3*i+3*j+0) = 255.0*(0.5*c.x+0.5);
-			normals->at(w*3*i+3*j+1) = 255.0*(0.5*c.y+0.5);
-			normals->at(w*3*i+3*j+2) = 255.0*(0.5*c.z+0.5);
+	for (int i=1; i<resolution-1; i++) {
+		for (int j=1; j<resolution-1; j++) {
+			double centerY = minY + i*dy;
+			double centerX = minX + j*dx;
+
+			double up = centerY + dy;
+			double right = centerX + dx;
+			double down = centerY - dy;
+			double left = centerX - dx;
+
+			transformation->Transform(1, &centerX, &centerY, NULL);
+			transformation->Transform(1, &right, &up, NULL);
+			transformation->Transform(1, &left, &down, NULL);
+
+			vec3 horizontal(2.0, 0.0, dem.elevAt(right, centerY) - 
+				dem.elevAt(left, centerY));
+			vec3 vertical(0.0, 2.0, dem.elevAt(centerX, up) - 
+				dem.elevAt(centerX, down));
+			vec3 c = normalize(cross(horizontal,vertical));
+			normals->at(resolution*3*i+3*j+0) = 255.0*(0.5*c.x+0.5);
+			normals->at(resolution*3*i+3*j+1) = 255.0*(0.5*c.y+0.5);
+			normals->at(resolution*3*i+3*j+2) = 255.0*(0.5*c.z+0.5);
 		}
 	}
 #pragma omp barrier
-	normals = flipVertically(normals,w,3);
+	normals = flipVertically(normals,resolution,3);
 
 	int result = SOIL_save_image
 		(
 		image,
 		SOIL_SAVE_TYPE_BMP,
-		w, h, 3,
+		resolution, resolution, 3,
 		normals->data()
 		);
 	assert(result == 1);
@@ -352,10 +367,11 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 		}
 		SHPDestroyObject(shpObjIn);
 	}
+	double cushionX = (maxLng-minLng)*0.1; 
+	double cushionY = (maxLat-minLat)*0.1;
 
-	fprintf(stderr, "connecting to DEM server with query %f %f %f %f %d %d \n", 
-		minLng, maxLng, minLat, maxLat, resolution, resolution);
-	MikeDEM demHeightField(minLng, maxLng, minLat, maxLat, resolution, resolution);
+	MikeDEM demHeightField(minLng - cushionX, maxLng + cushionX, minLat - cushionY, 
+		maxLat + cushionY, resolution, resolution);
 
 
 	fprintf(stderr, "creating 3D shapefile.... \n");
@@ -426,4 +442,15 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 	fs::path inXmlPath(inSHP);
 	inXmlPath.replace_extension(".xml");
 	copyFile(inXmlPath, outXmlPath);
+
+	fs::path outTttPath(outSHP);
+	outTttPath.replace_extension(".ttt");
+	createTTTFile(outTttPath.string().c_str(), inSHP);
+
+	string normalsPathString(outSHP);
+	auto loc0 = normalsPathString.find(".");
+	normalsPathString.replace(loc0, string::npos, "Normals.bmp");
+	
+	createNormalTexture(normalsPathString.c_str(), demHeightField, mins[0], maxs[0],
+		mins[1], maxs[1], transformation, resolution);
 }

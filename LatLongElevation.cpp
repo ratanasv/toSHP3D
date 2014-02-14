@@ -40,7 +40,7 @@ size_t write_data(void *ptr, size_t size, size_t count, void *stream) {
 	return size*count;
 }
 
-MikeDEM::MikeDEM(float lngMin, float lngMax, float latMin, float latMax,
+MikeDEM::MikeDEM(double lngMin, double lngMax, double latMin, double latMax,
 	int numLngs, int numLats) : NUM_LNGS(numLngs), NUM_LATS(numLats),
 	LNG_MIN(lngMin), LNG_MAX(lngMax), LAT_MIN(latMin), LAT_MAX(latMax) 
 {
@@ -53,7 +53,7 @@ MikeDEM::MikeDEM(float lngMin, float lngMax, float latMin, float latMax,
 		throw CurlInitException("curl_easy_init failed");
 	}
 
-	CurlData curlData = {NULL, 0};
+	CurlData curlData = {new char[5012], 0, 5012};
 
 	auto queryString = createQueryString(MIKEDEM_BASE_URL);
 	curl_easy_setopt(curl.get(), CURLOPT_URL, queryString.c_str());
@@ -73,15 +73,15 @@ MikeDEM::MikeDEM(float lngMin, float lngMax, float latMin, float latMax,
 	initHeightWithXTR(curlData._data);
 }
 
-float MikeDEM::elevAt( float longtitude, float latitude ) {
+float MikeDEM::elevAt(double longtitude, double latitude) const {
 	double latRange = LAT_MAX-LAT_MIN;
 	double lngRange = LNG_MAX-LNG_MIN;
-	int latI = (int)( ((latitude-LAT_MIN)/latRange)*((float)NUM_LATS-1.0)  );
-	int lngI = (int)( ((longtitude-LNG_MIN)/lngRange)*((float)NUM_LNGS-1.0)  );
+	int latI = (int)( ((latitude-LAT_MIN)/latRange)*((double)NUM_LATS-1.0)  );
+	int lngI = (int)( ((longtitude-LNG_MIN)/lngRange)*((double)NUM_LNGS-1.0)  );
 	return elevAtIndex(lngI, latI);
 }
 
-float MikeDEM::elevAtIndex(int lngI, int latI) {
+float MikeDEM::elevAtIndex(int lngI, int latI) const {
 	if (latI > NUM_LATS || lngI > NUM_LNGS || lngI < 0 || latI < 0 ) {
 		throw out_of_range("invalid lat/long");
 	}

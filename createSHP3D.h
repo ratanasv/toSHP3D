@@ -39,7 +39,9 @@ struct ElevationData{
 
 
 struct ElevationData readXTR(const char* fName);
-DECLDIR void createNormalTexture(const char* image, const char* xtr);
+DECLDIR void createNormalTexture(const char* image, const MikeDEM& dem, 
+	const double minX, const double maxX, const double minY, const double maxY, 
+	OGRCoordinateTransformation* transformation, const int resolution);
 
 DECLDIR std::shared_ptr<std::vector<double>> getSHPInfo(const char* shpName);
 DECLDIR void createTTTFile(const char* tName, const char* shpName);
