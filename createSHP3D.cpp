@@ -9,12 +9,6 @@ namespace fs = boost::filesystem;
 std::shared_ptr<std::vector<double>> giveMeHeights(SHPObject* shpObjIn, struct ElevationData);
 
 
-template<class T> shared_ptr<T> initCStyleArray(T* data) {
-	return shared_ptr<T>(data, [](T* tData) {
-		delete[] tData;
-	});
-}
-
 template<class T> shared_ptr<vector<T>> initVectorArray() {
 	return shared_ptr<vector<T>>(new vector<T>());
 }

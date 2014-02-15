@@ -2,11 +2,12 @@
 #include "createSHP3D.h"
 #include "Bicubic.h"
 
-
+#ifndef TEST
 using boost::filesystem::path;
 
-void main(int argc, char** argv)
-{
+
+
+void main(int argc, char** argv) {
 	if (argc != 3) {
 		fprintf(stderr, "usage: 2dshpPath outputPath \n");
 		exit(EXIT_FAILURE);
@@ -19,10 +20,10 @@ void main(int argc, char** argv)
 // 
 // 	createNormalTexture(bumpmappingPath.string().c_str(), xtrPath.string().c_str());
 // 	createTTTFile(tttPath.string().c_str(), shp3dPath.string().c_str());
-	createSHP3D(argv[1], argv[2], 4096);
+	createSHP3D(argv[1], argv[2], 512);
 // 	createTTTFile("C:/Users/ratanasv/Desktop/tempout/idu3D.ttt", 
 // 		"C:/Users/ratanasv/Desktop/tempOut/idu3D.shp");
 
 }
 
-
+#endif

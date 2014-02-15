@@ -11,7 +11,7 @@ private:
 public:
 	Bicubic(std::shared_ptr<float>& data, const int resolution);
 	float valueAt(float di, float dj);
-private:
+public:
 	void computeAlphaAt(int i, int j);
 	std::shared_ptr<float> initFX();
 	std::shared_ptr<float> initFY();
