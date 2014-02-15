@@ -17,3 +17,4 @@
 #include <boost/test/unit_test.hpp>
 #include <memory>
 #include <vector>
+#include <Eigen>

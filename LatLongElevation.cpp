@@ -5,6 +5,7 @@
 #include <cassert>
 #include <sstream>
 #include "Exception.h"
+#include "Bicubic.h"
 
 
 using std::ostringstream;
@@ -86,7 +87,7 @@ float MikeDEM::elevAtIndex(int lngI, int latI) const {
 	if (latI > NUM_LATS || lngI > NUM_LNGS || lngI < 0 || latI < 0 ) {
 		throw out_of_range("invalid lat/long");
 	}
-	return elevationData->at(NUM_LNGS*latI + lngI);
+	return (elevationData.get())[NUM_LNGS*latI + lngI];
 }
 
 string MikeDEM::createQueryString( const string& baseURL ) {
@@ -124,12 +125,10 @@ void MikeDEM::initHeightWithXTR(char* data) {
 // 	assert(numLngs == NUM_LNGS);
 // 	assert(numLats == NUM_LATS);
 
-	vector<float>* hVec = new vector<float>(NUM_LNGS * NUM_LATS, 0.0);
-
+	elevationData.reset(new float[NUM_LNGS*NUM_LATS]);
+	auto elevPtr = elevationData.get();
 	for (int y = 0; y<NUM_LATS; y++) {
-		memcpy( &((*hVec)[y*NUM_LNGS]), data + iterator, sizeof(float)*NUM_LNGS);
+		memcpy( &(elevPtr[y*NUM_LNGS]), data + iterator, sizeof(float)*NUM_LNGS);
 		iterator = iterator + sizeof(float)*NUM_LNGS;
 	}
-
-	elevationData.reset(hVec);
 }

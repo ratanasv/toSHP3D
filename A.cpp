@@ -1,11 +1,13 @@
 #include "stdafx.h"
 #include "createSHP3D.h"
+#include "Bicubic.h"
 
 
 using boost::filesystem::path;
 
 void main(int argc, char** argv)
 {
+	
 	if (argc != 3) {
 		fprintf(stderr, "usage: 2dshpPath outputPath \n");
 		exit(EXIT_FAILURE);
@@ -21,6 +23,7 @@ void main(int argc, char** argv)
 	createSHP3D(argv[1], argv[2], 4096);
 // 	createTTTFile("C:/Users/ratanasv/Desktop/tempout/idu3D.ttt", 
 // 		"C:/Users/ratanasv/Desktop/tempOut/idu3D.shp");
+
 }
 
 

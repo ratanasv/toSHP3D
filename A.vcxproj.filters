@@ -24,6 +24,9 @@
     <ClCompile Include="LatLongElevation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Bicubic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="createSHP3D.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Exception.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Bicubic.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

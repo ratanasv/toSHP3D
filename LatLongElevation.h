@@ -9,6 +9,7 @@ using std::shared_ptr;
 using std::vector;
 using std::out_of_range;
 
+class Bicubic;
 
 class LatLongElevation {
 public:
@@ -27,7 +28,7 @@ private:
 	const double LNG_MAX;
 	const double LAT_MIN;
 	const double LAT_MAX;
-	shared_ptr<vector<float>> elevationData;
+	shared_ptr<float> elevationData;
 public:
 	MikeDEM(double lngMin, double lngMax, double latMin, double latMax, 
 		int numLngs, int numLats); //throws CurlInitException, CurlConnectionException;
