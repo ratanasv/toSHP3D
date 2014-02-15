@@ -78,9 +78,10 @@ MikeDEM::MikeDEM(double lngMin, double lngMax, double latMin, double latMax,
 float MikeDEM::elevAt(double longtitude, double latitude) const {
 	double latRange = LAT_MAX-LAT_MIN;
 	double lngRange = LNG_MAX-LNG_MIN;
-	int latI = (int)( ((latitude-LAT_MIN)/latRange)*((double)NUM_LATS-1.0)  );
-	int lngI = (int)( ((longtitude-LNG_MIN)/lngRange)*((double)NUM_LNGS-1.0)  );
-	return elevAtIndex(lngI, latI);
+	double latI = ((latitude-LAT_MIN)/latRange)*((double)NUM_LATS-1.0);
+	double lngI = ((longtitude-LNG_MIN)/lngRange)*((double)NUM_LNGS-1.0);
+	
+	return _bicubic->valueAt(latI, lngI);
 }
 
 float MikeDEM::elevAtIndex(int lngI, int latI) const {
@@ -131,4 +132,5 @@ void MikeDEM::initHeightWithXTR(char* data) {
 		memcpy( &(elevPtr[y*NUM_LNGS]), data + iterator, sizeof(float)*NUM_LNGS);
 		iterator = iterator + sizeof(float)*NUM_LNGS;
 	}
+	_bicubic.reset(new Bicubic(elevationData, NUM_LNGS));
 }

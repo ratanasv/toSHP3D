@@ -29,6 +29,7 @@ private:
 	const double LAT_MIN;
 	const double LAT_MAX;
 	shared_ptr<float> elevationData;
+	shared_ptr<Bicubic> _bicubic;
 public:
 	MikeDEM(double lngMin, double lngMax, double latMin, double latMax, 
 		int numLngs, int numLats); //throws CurlInitException, CurlConnectionException;
