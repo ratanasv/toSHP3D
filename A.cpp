@@ -7,7 +7,6 @@ using boost::filesystem::path;
 
 void main(int argc, char** argv)
 {
-	
 	if (argc != 3) {
 		fprintf(stderr, "usage: 2dshpPath outputPath \n");
 		exit(EXIT_FAILURE);

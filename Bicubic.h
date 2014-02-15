@@ -8,15 +8,15 @@ private:
 	std::shared_ptr<float> _data;
 	//_alpha is of dimension (N-1)x(N-1)x4x4
 	std::shared_ptr<float> _alpha;
-	std::shared_ptr<float> _fx;
-	std::shared_ptr<float> _fy;
-	std::shared_ptr<float> _fxy;
 public:
 	Bicubic(std::shared_ptr<float>& data, const int resolution);
 	float valueAt(float di, float dj);
 private:
 	void computeAlphaAt(int i, int j);
-	void initFX();
-	void initFY();
-	void initFXY();
+	std::shared_ptr<float> initFX();
+	std::shared_ptr<float> initFY();
+	std::shared_ptr<float> initFXY(std::shared_ptr<float>& fx, 
+		std::shared_ptr<float>& fy);
+	void initAlpha(std::shared_ptr<float>& fx, 
+		std::shared_ptr<float>& fy, std::shared_ptr<float>& fxy);
 };

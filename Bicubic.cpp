@@ -34,25 +34,10 @@ const Eigen::MatrixXf& MatrixA() {
 Bicubic::Bicubic(shared_ptr<float>& data, const int resolution) : 
 	_data(data), _resolution(resolution)
 {
-	initFX();
-	initFY();
-	initFXY();
-	_alpha.reset(new float[(_resolution-1)*(_resolution-1)*16], [](float *what) {
-		delete[] what;	
-	});
-	for (int i=0; i<_resolution-1; i++) {
-		for (int j=0; j<_resolution-1; j++) {
-			computeAlphaAt(i, j);
-		}
-	}
-	int what;
-	std::cin >> what;
-	_fx.reset();
-	_fy.reset();
-	_fxy.reset();
-	std::cin >> what;
-	_alpha.reset();
-	std::cin >> what;
+	auto fx = initFX();
+	auto fy = initFY();
+	auto fxy = initFXY(fx, fy);
+	initAlpha(fx, fy, fxy);
 }
 
 float Bicubic::valueAt(float di, float dj) {
@@ -79,41 +64,14 @@ float Bicubic::valueAt(float di, float dj) {
 }
 
 void Bicubic::computeAlphaAt(int i, int j) {
-	Eigen::VectorXf alphas(16);
-	Eigen::VectorXf xs(16);
-
-	assert(_fx);
-	assert(_fy);
-	assert(_fxy);
-	assert(_alpha);
-
-	const float* fx = _fx.get();
-	const float* fy = _fy.get();
-	const float* fxy = _fxy.get();
-	const float* f = _data.get();
-	float* a = _alpha.get() + (i*(_resolution-1)*16+j*16);
-
-	const int zerozero = i*_resolution + j;
-	const int zeroone = i*_resolution + j + 1;
-	const int onezero = i*(_resolution+1) + j;
-	const int oneone = i*(_resolution+1) + j + 1;
-
-	xs << f[zerozero], f[onezero], f[zeroone], f[oneone], 
-		fx[zerozero], fx[onezero], fx[zeroone], fx[oneone], 
-		fy[zerozero], fy[onezero], fy[zeroone], fy[oneone], 
-		fxy[zerozero], fxy[onezero], fxy[zeroone], fxy[oneone];
-	alphas = MatrixA()*xs;
-
-	for (int k=0; k<16; k++) {
-		a[k] = alphas[k];
-	}
+	
 }
 
-void Bicubic::initFX() {
-	_fx.reset(new float[_resolution*_resolution], [](float* what) {
+shared_ptr<float> Bicubic::initFX() {
+	shared_ptr<float> managedFx(new float[_resolution*_resolution], [](float* what) {
 		delete[] what;
 	});
-	auto fx = _fx.get();
+	auto fx = managedFx.get();
 	const float* f = _data.get();
 	omp_set_num_threads(omp_get_num_procs());
 #pragma omp parallel for
@@ -130,13 +88,14 @@ void Bicubic::initFX() {
 		}
 	}
 #pragma omp barrier
+	return managedFx;
 }
 
-void Bicubic::initFY() {
-	_fy.reset(new float[_resolution*_resolution], [](float* what) {
+shared_ptr<float> Bicubic::initFY() {
+	shared_ptr<float> managedFy(new float[_resolution*_resolution], [](float* what) {
 		delete[] what;
 	});
-	auto fy = _fy.get();
+	auto fy = managedFy.get();
 	const float* f = _data.get();
 	omp_set_num_threads(omp_get_num_procs());
 #pragma omp parallel for
@@ -153,15 +112,16 @@ void Bicubic::initFY() {
 		}
 	}
 #pragma omp barrier
+	return managedFy;
 }
 
-void Bicubic::initFXY() {
-	_fxy.reset(new float[_resolution*_resolution], [](float* what) {
+shared_ptr<float> Bicubic::initFXY(shared_ptr<float>& mfx, shared_ptr<float>& mfy) {
+	shared_ptr<float> managedFxy(new float[_resolution*_resolution], [](float* what) {
 		delete[] what;
 	});
-	auto fxy = _fxy.get();
-	const float* fx = _fx.get();
-	const float* fy = _fy.get();
+	auto fxy = managedFxy.get();
+	const float* fx = mfx.get();
+	const float* fy = mfy.get();
 	omp_set_num_threads(omp_get_num_procs());
 #pragma omp parallel for
 	for (int i=0; i<_resolution; i++) {
@@ -177,4 +137,46 @@ void Bicubic::initFXY() {
 		}
 	} 
 #pragma omp barrier
+	return managedFxy;
+}
+
+void Bicubic::initAlpha(shared_ptr<float>& mfx, shared_ptr<float>& mfy, 
+	shared_ptr<float>& mfxy) 
+{
+	_alpha.reset(new float[(_resolution-1)*(_resolution-1)*16], [](float *what) {
+		delete[] what;	
+	});
+
+	assert(mfx);
+	assert(mfy);
+	assert(mfxy);
+	assert(_alpha);
+
+	for (int i=0; i<_resolution-1; i++) {
+		for (int j=0; j<_resolution-1; j++) {
+			Eigen::VectorXf alphas(16);
+			Eigen::VectorXf xs(16);
+
+			const float* fx = mfx.get();
+			const float* fy = mfy.get();
+			const float* fxy = mfxy.get();
+			const float* f = _data.get();
+			float* a = _alpha.get() + (i*(_resolution-1)*16+j*16);
+
+			const int zerozero = i*_resolution + j;
+			const int zeroone = i*_resolution + j + 1;
+			const int onezero = i*(_resolution+1) + j;
+			const int oneone = i*(_resolution+1) + j + 1;
+
+			xs << f[zerozero], f[onezero], f[zeroone], f[oneone], 
+				fx[zerozero], fx[onezero], fx[zeroone], fx[oneone], 
+				fy[zerozero], fy[onezero], fy[zeroone], fy[oneone], 
+				fxy[zerozero], fxy[onezero], fxy[zeroone], fxy[oneone];
+			alphas = MatrixA()*xs;
+
+			for (int k=0; k<16; k++) {
+				a[k] = alphas[k];
+			}
+		}
+	}
 }
