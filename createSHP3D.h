@@ -37,6 +37,6 @@ template <class T> shared_ptr<T> initArray(T* data);
 void createSHP3D(const char* inSHP, const char* outSHP, const int resolution);
 OGRCoordinateTransformation* getTransformation(std::shared_ptr<char> prjWktSource);
 std::string stringf(const char* format, ... );
-MikeDEM computeMinsMaxs(SHPHandle shpIn, OGRCoordinateTransformation* transformation, 
+void computeMinsMaxs(SHPHandle shpIn, OGRCoordinateTransformation* transformation, 
 	double& minLng, double& maxLng, double& minLat, double& maxLat);
 void computeCushion(double& minLng, double& maxLng, double& minLat, double& maxLat);

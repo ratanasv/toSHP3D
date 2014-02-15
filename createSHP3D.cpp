@@ -349,7 +349,7 @@ OGRCoordinateTransformation* getTransformation(shared_ptr<char> prjWktSource) {
 	return transformation;
 }
 
-MikeDEM computeMinsMaxs(SHPHandle shpIn, OGRCoordinateTransformation* transformation,
+void computeMinsMaxs(SHPHandle shpIn, OGRCoordinateTransformation* transformation,
 	double& minLng, double& maxLng, double& minLat, double& maxLat) 
 {
 	double mins[4], maxs[4];
@@ -418,6 +418,8 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 	computeMinsMaxs(shpIn, transformation, minLng, maxLng, minLat, maxLat);
 	computeCushion(minLng, maxLng, minLat, maxLat);
 	MikeDEM demHeightField(minLng, maxLng, minLat, maxLat, resolution, resolution);
+
+	
 
 	fprintf(stderr, "creating 3D shapefile.... \n");
 	SHPHandle shpOut = SHPCreate(outSHP,SHPT_POLYGONZ);
