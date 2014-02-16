@@ -9,11 +9,15 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>"C:/Users/ratanasv/Desktop/alexis/idu.shp" "C:/Users/ratanasv/Desktop/bicubic/idu3D.shp" </LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>"C:/Users/ratanasv/Desktop/alexis/idu.shp" "C:/Users/ratanasv/Desktop/bicubic/idu3D.shp"  4096</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>"C:/Users/ratanasv/Desktop/alexis/idu.shp" "C:/Users/ratanasv/Desktop/bicubic/idu3D.shp" </LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>"C:/Users/ratanasv/Desktop/alexis/idu.shp" "C:/Users/ratanasv/Desktop/bicubic/idu3D.shp"  4096</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|x64'">
+    <LocalDebuggerCommandArguments>"C:/Users/ratanasv/Desktop/alexis/idu.shp" "C:/Users/ratanasv/Desktop/bicubic/idu3D.shp"  4096</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

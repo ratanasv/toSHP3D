@@ -8,11 +8,16 @@ using boost::filesystem::path;
 
 
 void main(int argc, char** argv) {
-	if (argc != 3) {
-		fprintf(stderr, "usage: 2dshpPath outputPath \n");
+	if (argc != 4) {
+		fprintf(stderr, "usage: 2dshpPath outputPath resolution\n");
 		exit(EXIT_FAILURE);
 	}
-// 
+	int resolution = atoi(argv[3]);
+	if (resolution == 0) {
+		fprintf(stderr, "resolution not a number");
+		exit(EXIT_FAILURE);
+	}
+//
 // 	path xtrPath(argv[1]);
 // 	path bumpmappingPath(argv[2]);
 // 	path shp3dPath(argv[3]);
@@ -20,7 +25,7 @@ void main(int argc, char** argv) {
 // 
 // 	createNormalTexture(bumpmappingPath.string().c_str(), xtrPath.string().c_str());
 // 	createTTTFile(tttPath.string().c_str(), shp3dPath.string().c_str());
-	createSHP3D(argv[1], argv[2], 512);
+	createSHP3D(argv[1], argv[2], resolution);
 // 	createTTTFile("C:/Users/ratanasv/Desktop/tempout/idu3D.ttt", 
 // 		"C:/Users/ratanasv/Desktop/tempOut/idu3D.shp");
 
