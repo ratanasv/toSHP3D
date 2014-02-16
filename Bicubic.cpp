@@ -5,7 +5,7 @@
 using namespace std;
 
 // see http://en.wikipedia.org/wiki/Bicubic_interpolation#Bicubic_interpolation.
-const Eigen::MatrixXf& MatrixA() {
+const Eigen::MatrixXf& MatrixAInverse() {
 	static bool hasBeenInit = false;
 	static Eigen::MatrixXf AInverse(16, 16);
 	if (!hasBeenInit) {
@@ -27,8 +27,7 @@ const Eigen::MatrixXf& MatrixA() {
 			4 , -4 , -4 , 4 , 2 , 2 , -2 , -2 , 2 , -2 , 2 , -2 , 1 , 1 , 1 , 1;
 		hasBeenInit = true;
 	}
-	static Eigen::MatrixXf A = AInverse.inverse();
-	return A;
+	return AInverse;
 }
 
 Bicubic::Bicubic(shared_ptr<float>& data, const int resolution) : 
@@ -45,26 +44,31 @@ float Bicubic::valueAt(float di, float dj) {
 		throw runtime_error("di dj out of range");
 	}
 
-	const int ii = (int)di;
-	const int jj = (int)dj;
-
-	const float* alpha = _alpha.get() + (ii*_resolution*16 + jj*16);
+	int ii = (int)di;
+	int jj = (int)dj;
 
 	float x = di - (float)ii;
 	float y = dj - (float)jj;
 
+	if (ii == _resolution-1) {
+		ii--;
+		y = 1.0;
+	}
+	if (jj == _resolution-1) {
+		jj--;
+		x = 1.0;
+	}
+
+	const auto& alpha = (_alpha.get())[ii*(_resolution-1) + jj];
+
 	float sum = 0.0;
 	for (int i=0; i<4; i++) {
 		for (int j=0; j<4; j++) {
-			sum += alpha[4*i+j]*pow(x, i)*pow(y, j);
+			sum += alpha[i][j]*pow(x, i)*pow(y, j);
 		}
 	}
 
 	return sum;
-}
-
-void Bicubic::computeAlphaAt(int i, int j) {
-	
 }
 
 shared_ptr<float> Bicubic::initFX() {
@@ -73,8 +77,6 @@ shared_ptr<float> Bicubic::initFX() {
 	});
 	auto fx = managedFx.get();
 	const float* f = _data.get();
-	omp_set_num_threads(omp_get_num_procs());
-#pragma omp parallel for
 	for (int i=0; i<_resolution; i++) {
 		for (int j=0; j<_resolution; j++) {
 			const int row = i*_resolution;
@@ -87,7 +89,6 @@ shared_ptr<float> Bicubic::initFX() {
 			}
 		}
 	}
-#pragma omp barrier
 	return managedFx;
 }
 
@@ -107,7 +108,7 @@ shared_ptr<float> Bicubic::initFY() {
 			} else if (i == _resolution-1) {
 				fy[row+j] = (f[row+j]-f[row-_resolution+j]);
 			} else {
-				fy[row + j] = (f[row + _resolution + j] - f[row - _resolution + j])/2.0;
+				fy[row+j] = (f[row + _resolution + j] - f[row - _resolution + j])/2.0;
 			}
 		}
 	}
@@ -143,7 +144,7 @@ shared_ptr<float> Bicubic::initFXY(shared_ptr<float>& mfx, shared_ptr<float>& mf
 void Bicubic::initAlpha(shared_ptr<float>& mfx, shared_ptr<float>& mfy, 
 	shared_ptr<float>& mfxy) 
 {
-	_alpha.reset(new float[(_resolution-1)*(_resolution-1)*16], [](float *what) {
+	_alpha.reset(new float[(_resolution-1)*(_resolution-1)][4][4], [](float (*what)[4][4]) {
 		delete[] what;	
 	});
 
@@ -161,22 +162,35 @@ void Bicubic::initAlpha(shared_ptr<float>& mfx, shared_ptr<float>& mfy,
 			const float* fy = mfy.get();
 			const float* fxy = mfxy.get();
 			const float* f = _data.get();
-			float* a = _alpha.get() + (i*(_resolution-1)*16+j*16);
+			auto& a = (_alpha.get())[i*(_resolution-1)+j];
 
 			const int zerozero = i*_resolution + j;
-			const int zeroone = i*_resolution + j + 1;
-			const int onezero = i*(_resolution+1) + j;
-			const int oneone = i*(_resolution+1) + j + 1;
+			const int zeroone = (i+1)*(_resolution) + j;
+			const int onezero = i*(_resolution) + j+1;
+			const int oneone = (i+1)*(_resolution) + j+1;
 
 			xs << f[zerozero], f[onezero], f[zeroone], f[oneone], 
 				fx[zerozero], fx[onezero], fx[zeroone], fx[oneone], 
 				fy[zerozero], fy[onezero], fy[zeroone], fy[oneone], 
 				fxy[zerozero], fxy[onezero], fxy[zeroone], fxy[oneone];
-			alphas = MatrixA()*xs;
+			alphas = MatrixAInverse()*xs;
 
-			for (int k=0; k<16; k++) {
-				a[k] = alphas[k];
-			}
+			a[0][0] = alphas[0];
+			a[1][0] = alphas[1];
+			a[2][0] = alphas[2];
+			a[3][0] = alphas[3];
+			a[0][1] = alphas[4];
+			a[1][1] = alphas[5];
+			a[2][1] = alphas[6];
+			a[3][1] = alphas[7];
+			a[0][2] = alphas[8];
+			a[1][2] = alphas[9];
+			a[2][2] = alphas[10];
+			a[3][2] = alphas[11];
+			a[0][3] = alphas[12];
+			a[1][3] = alphas[13];
+			a[2][3] = alphas[14];
+			a[3][3] = alphas[15];
 		}
 	}
 }

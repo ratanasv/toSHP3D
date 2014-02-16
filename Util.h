@@ -9,11 +9,11 @@ template<class T> shared_ptr<T> initCStyleArray(T* data) {
 	});
 }
 
-template<class T> class MultiArray {
+template<class T> class TwoDArray {
 public:
-	MultiArray(const int width, const int height) : _width(width), _height(height), 
+	TwoDArray(const int width, const int height) : _width(width), _height(height), 
 		_data(initCStyleArray(new T[width*height])) {};
-	MultiArray(std::shared_ptr<T> data, const int width, const int height) : 
+	TwoDArray(std::shared_ptr<T> data, const int width, const int height) : 
 		_width(width), _height(height), _data(data) {};
 	T* operator[] (int i) {
 		assert(i<_height);
