@@ -9,22 +9,6 @@ namespace fs = boost::filesystem;
 std::shared_ptr<std::vector<double>> giveMeHeights(SHPObject* shpObjIn, struct ElevationData);
 
 
-template<class T> shared_ptr<vector<T>> initVectorArray() {
-	return shared_ptr<vector<T>>(new vector<T>());
-}
-
-shared_ptr<SHPObject> initShape(SHPObject* shp) {
-	return shared_ptr<SHPObject>(shp, [](SHPObject* shpData) {
-		SHPDestroyObject(shpData);
-	});
-}
-
-shared_ptr<SHPInfo> initShapeHandle(SHPInfo* shpInfo) {
-	return shared_ptr<SHPInfo>(shpInfo, [](SHPInfo* shpInfoHandle) {
-		SHPClose(shpInfoHandle);
-	});
-}
-
 void HSVtoRGB(float hsv[3], float rgb[3])
 {
 	float tmp1 = hsv[2] * (1-hsv[1]);

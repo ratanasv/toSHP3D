@@ -9,6 +9,32 @@ template<class T> shared_ptr<T> initCStyleArray(T* data) {
 	});
 }
 
+template<class T> shared_ptr<vector<T>> initVectorArray() {
+	return shared_ptr<vector<T>>(new vector<T>());
+}
+
+shared_ptr<SHPObject> initShape(SHPObject* shp);
+
+shared_ptr<SHPInfo> initShapeHandle(SHPInfo* shpInfo);
+
+class FileGuard {
+private:
+	FILE* _fp;
+public:
+	FileGuard(const std::string& where, const char* mode);
+	~FileGuard();
+	FILE* get();
+private:
+	FileGuard(const FileGuard& other);
+	FileGuard& operator=(const FileGuard& other);
+};
+
+template <class T> std::shared_ptr<T> InitCStyleArray(T* data) {
+	return std::shared_ptr<T>(data, [](T* ptr) {
+		delete[] ptr;
+	});
+}
+
 template<class T> class TwoDArray {
 public:
 	TwoDArray(const int width, const int height) : _width(width), _height(height), 
