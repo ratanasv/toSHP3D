@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "createSHP3D.h"
 #include "Bicubic.h"
+#include "SHPToObj.h"
 
 #ifndef TEST
 using boost::filesystem::path;
@@ -8,6 +9,7 @@ using boost::filesystem::path;
 
 
 void main(int argc, char** argv) {
+/*
 	if (argc != 4) {
 		fprintf(stderr, "usage: 2dshpPath outputPath resolution\n");
 		exit(EXIT_FAILURE);
@@ -17,18 +19,12 @@ void main(int argc, char** argv) {
 		fprintf(stderr, "resolution not a number");
 		exit(EXIT_FAILURE);
 	}
-//
-// 	path xtrPath(argv[1]);
-// 	path bumpmappingPath(argv[2]);
-// 	path shp3dPath(argv[3]);
-// 	path tttPath(argv[4]);
-// 
-// 	createNormalTexture(bumpmappingPath.string().c_str(), xtrPath.string().c_str());
-// 	createTTTFile(tttPath.string().c_str(), shp3dPath.string().c_str());
-	createSHP3D(argv[1], argv[2], resolution);
-// 	createTTTFile("C:/Users/ratanasv/Desktop/tempout/idu3D.ttt", 
-// 		"C:/Users/ratanasv/Desktop/tempOut/idu3D.shp");
 
+	createSHP3D(argv[1], argv[2], resolution);*/
+ 	createTTTFile("C:/Users/ratanasv/Desktop/alexis/idu3D.ttt",
+ 		"C:/Users/ratanasv/Desktop/alexis/idu3D.shp");
+ 	SHPToObj("C:/Users/ratanasv/Desktop/alexis/idu3D.shp", 
+ 		"C:/Users/ratanasv/Desktop/alexis/idu3D.obj");
 }
 
 #endif

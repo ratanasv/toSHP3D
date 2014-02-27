@@ -209,9 +209,9 @@ void createTTTFile(const char* tName, const char* shpName)
 			poly.Init(last-first+1);
 			unsigned c=0;
 			assert(shape->padfX[first] == shape->padfX[last]);
-			for (int i = first; i<last; i++) {
-				poly[c].x = shape->padfX[i];
-				poly[c].y = shape->padfY[i];
+			for (int k = first; k<=last; k++) {
+				poly[c].x = shape->padfX[k];
+				poly[c].y = shape->padfY[k];
 				c++;
 			}
 			if (poly.GetOrientation() == TPPL_CW) {
