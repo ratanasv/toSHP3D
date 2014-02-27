@@ -2,10 +2,11 @@
 #include "SHPToObj.h"
 #include "objload.h"
 using namespace std;
+namespace fs = boost::filesystem;
 
 
-void SHPToObj(const string& shpPath, const string& objPath) {
-	auto shp_handle = initShapeHandle(SHPOpen(shpPath.c_str(), "rb"));
+void SHPToObj(const string& shpPathString, const string& objPath) {
+	auto shp_handle = initShapeHandle(SHPOpen(shpPathString.c_str(), "rb"));
 	int num_shapes;
 	SHPGetInfo(shp_handle.get(), &num_shapes, NULL, NULL, NULL);
 
@@ -21,13 +22,32 @@ void SHPToObj(const string& shpPath, const string& objPath) {
 				last = shape->panPartStart[j+1]-1;
 			}
 
-			for (int i=first; i<last; i++) {
-				objModel.vertex.push_back(shape->padfX[i]);
-				objModel.vertex.push_back(shape->padfY[i]);
-				objModel.vertex.push_back(shape->padfZ[i]);
+			for (int k=first; k<last; k++) {
+				objModel.vertex.push_back(shape->padfX[k]);
+				objModel.vertex.push_back(shape->padfY[k]);
+				objModel.vertex.push_back(shape->padfZ[k]);
 			}
 		}
 	}
 
+	const fs::path shpPath(shpPathString);
+	fs::path tttPath = shpPath;
+	tttPath.replace_extension(".ttt");
 
+	FileGuard tttFile(tttPath.string().c_str(), "rb");
+	fseek(tttFile.get(), sizeof(int), SEEK_SET);
+	int numTris;
+	fread(&numTris, sizeof(int), 1, tttFile.get());
+
+	objModel.faces["foo"] = vector<unsigned short>();
+	auto& indices = objModel.faces["foo"];
+
+	for (int i=0; i<numTris; i++) {
+		unsigned int buffer;
+		fread(&buffer, sizeof(unsigned int), 1, tttFile.get());
+		indices.push_back((unsigned short)buffer);
+	}
+
+	ofstream outfile(objPath.c_str(),ofstream::binary);
+	outfile << objModel;
 }
