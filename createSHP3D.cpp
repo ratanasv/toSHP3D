@@ -224,7 +224,8 @@ void createTTTFile(const char* tName, const char* shpName)
 			TPPLPoly poly;
 			poly.Init(last-first+1);
 			unsigned c=0;
-			for(int i = first; i<= last; i++){
+			assert(shape->padfX[first] == shape->padfX[last]);
+			for (int i = first; i<last; i++) {
 				poly[c].x = shape->padfX[i];
 				poly[c].y = shape->padfY[i];
 				c++;
