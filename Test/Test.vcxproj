@@ -1,25 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Test|Win32">
-      <Configuration>Test</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Test|x64">
       <Configuration>Test</Configuration>
@@ -35,52 +23,27 @@
     <RootNamespace>Test</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Test|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -88,23 +51,10 @@
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Test|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Platform)/$(PlatformToolset)/$(Configuration)/</OutDir>
-    <IntDir>$(Platform)/$(PlatformToolset)/$(Configuration)/</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Platform)/$(PlatformToolset)/$(Configuration)/</OutDir>
-    <IntDir>$(Platform)/$(PlatformToolset)/$(Configuration)/</IntDir>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)/$(PlatformToolset)/$(Configuration)/</OutDir>
@@ -115,44 +65,11 @@
     <OutDir>$(SolutionDir)$(Platform)/$(PlatformToolset)/$(Configuration)</OutDir>
     <IntDir>$(Platform)/$(PlatformToolset)/$(Configuration)/</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Platform)/$(PlatformToolset)/$(Configuration)/</OutDir>
-    <IntDir>$(Platform)/$(PlatformToolset)/$(Configuration)/</IntDir>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)/$(PlatformToolset)/$(Configuration)/</OutDir>
     <IntDir>$(Platform)/$(PlatformToolset)/$(Configuration)/</IntDir>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VAULT_DIR)shapelib-1.3.0;$(VAULT_DIR)SOIL\src;$(VAULT_DIR)tinyxml2;$(VAULT_DIR)polypartition;$(VAULT_DIR)curl-7.33.0\include;$(VAULT_DIR)boost_1_54_0;$(VAULT_DIR)gdalwin32-1.4.1\include;$(VAULT_DIR)Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Test|Win32'">
-    <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VAULT_DIR)shapelib-1.3.0;$(VAULT_DIR)SOIL\src;$(VAULT_DIR)tinyxml2;$(VAULT_DIR)polypartition;$(VAULT_DIR)curl-7.33.0\include;$(VAULT_DIR)boost_1_54_0;$(VAULT_DIR)gdalwin32-1.4.1\include;$(VAULT_DIR)Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>
@@ -160,12 +77,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VAULT_DIR)shapelib-1.3.0;$(VAULT_DIR)SOIL\src;$(VAULT_DIR)tinyxml2;$(VAULT_DIR)polypartition;$(VAULT_DIR)curl-7.33.0\include;$(VAULT_DIR)boost_1_54_0;$(VAULT_DIR)gdalwin32-1.4.1\include;$(VAULT_DIR)Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAULT_DIR)shapelib-1.3.0;$(VAULT_DIR)SOIL\src;$(VAULT_DIR)tinyxml2;$(VAULT_DIR)polypartition;$(VAULT_DIR)curl-7.33.0\include;$(BOOST_DIR);$(VAULT_DIR)GDAL\release-1600-x64\include;$(VAULT_DIR)Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(VAULT_DIR)mega_soln/$(Platform)/$(PlatformToolset)/$(Configuration);$(VAULT_DIR)GDAL/release-1600-x64/lib;$(VAULT_DIR)boost_1_54_0\stage\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VAULT_DIR)mega_soln/$(Platform)/$(PlatformToolset)/$(Configuration);$(VAULT_DIR)GDAL/release-1600-x64/lib;$(BOOST_DIR)stage\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>gdal_i.lib;Wldap32.lib;Ws2_32.lib;XMLHandler.lib;polypartition.lib;OpenGL32.lib;libSOIL.lib;shapelib.lib;libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -176,31 +93,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>TEST;CURL_STATICLIB;WIN32;_WINDOWS;WINVER=0x0400;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;A_DLL_EXPORT</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VAULT_DIR)shapelib-1.3.0;$(VAULT_DIR)SOIL\src;$(VAULT_DIR)tinyxml2;$(VAULT_DIR)polypartition;$(VAULT_DIR)curl-7.33.0\include;$(VAULT_DIR)boost_1_54_0;$(VAULT_DIR)gdalwin32-1.4.1\include;$(VAULT_DIR)Eigen;../;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAULT_DIR)shapelib-1.3.0;$(VAULT_DIR)SOIL\src;$(VAULT_DIR)tinyxml2;$(VAULT_DIR)polypartition;$(VAULT_DIR)curl-7.33.0\include;$(BOOST_DIR);$(VAULT_DIR)GDAL\release-1600-x64\include;$(VAULT_DIR)Eigen;..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(VAULT_DIR)mega_soln/$(Platform)/$(PlatformToolset)/Debug;$(VAULT_DIR)GDAL/release-1600-x64/lib;$(VAULT_DIR)boost_1_54_0\stage\x64\;$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VAULT_DIR)mega_soln/$(Platform)/$(PlatformToolset)/Debug;$(VAULT_DIR)GDAL/release-1600-x64/lib;$(BOOST_DIR)stage\x64\;$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>gdal_i.lib;Wldap32.lib;Ws2_32.lib;XMLHandler.lib;polypartition.lib;OpenGL32.lib;libSOIL.lib;shapelib.lib;libcurl.lib;A.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VAULT_DIR)shapelib-1.3.0;$(VAULT_DIR)SOIL\src;$(VAULT_DIR)tinyxml2;$(VAULT_DIR)polypartition;$(VAULT_DIR)curl-7.33.0\include;$(VAULT_DIR)boost_1_54_0;$(VAULT_DIR)gdalwin32-1.4.1\include;$(VAULT_DIR)Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -212,14 +111,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(VAULT_DIR)shapelib-1.3.0;$(VAULT_DIR)SOIL\src;$(VAULT_DIR)tinyxml2;$(VAULT_DIR)polypartition;$(VAULT_DIR)curl-7.33.0\include;$(VAULT_DIR)boost_1_54_0;$(VAULT_DIR)gdalwin32-1.4.1\include;$(VAULT_DIR)Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VAULT_DIR)shapelib-1.3.0;$(VAULT_DIR)SOIL\src;$(VAULT_DIR)tinyxml2;$(VAULT_DIR)polypartition;$(VAULT_DIR)curl-7.33.0\include;$(BOOST_DIR);$(VAULT_DIR)GDAL\release-1600-x64\include;$(VAULT_DIR)Eigen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(VAULT_DIR)mega_soln/$(Platform)/$(PlatformToolset)/$(Configuration);$(VAULT_DIR)GDAL/release-1600-x64/lib;$(VAULT_DIR)boost_1_54_0\stage\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VAULT_DIR)mega_soln/$(Platform)/$(PlatformToolset)/$(Configuration);$(VAULT_DIR)GDAL/release-1600-x64/lib;$(BOOST_DIR)stage\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>gdal_i.lib;Wldap32.lib;Ws2_32.lib;XMLHandler.lib;polypartition.lib;OpenGL32.lib;libSOIL.lib;shapelib.lib;libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
