@@ -161,5 +161,7 @@ VI_ShapeArray ImportFromSHPFile(const std::string& fileName) {
 	delete[] MaxBuffer;
 	delete[] MinBuffer;
 
+	SHPClose(shpHandle);
+
 	return VI_ShapeArray(shapeArray, header);
 }
