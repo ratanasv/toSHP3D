@@ -105,12 +105,61 @@ unsigned VI_ShapeArray::ComputeNumVertices() {
 	return total;
 }
 VI_ShapeArray ImportFromSHPFile(const std::string& fileName) {
-	auto shapes = InitVectorArray<VI_Shape>();
-	auto shpHandle = initShapeHandle(SHPOpen(fileName.c_str(), "rb"));
+	auto shapes = initVectorArray<VI_Shape>();
+	auto shpHandle = SHPOpen(fileName.c_str(), "rb");
 	int numShapes;
-	SHPGetInfo(shpHandle.get(), &numShapes, NULL, NULL, NULL);
+	int type;
+	SHPGetInfo(shpHandle, &numShapes, &type, NULL, NULL);
 	
-	for (int i=0; i<numShapes; i++) {
-		
+	shared_ptr<vector<VI_Shape>> shapeArray(new vector<VI_Shape>(numShapes));
+	for (int i = 0; i < numShapes; i++) {
+		shared_ptr<SHPObject> shpObject(SHPReadObject(shpHandle, i), [](SHPObject* obj) {
+			SHPDestroyObject(obj);
+		});
+		shapeArray->at(i).ShapeHeader.numparts = shpObject->nParts;
+		shapeArray->at(i).ShapeHeader.numpoints = shpObject->nVertices;
+		shapeArray->at(i).ShapeHeader.xmax = shpObject->dfXMax;
+		shapeArray->at(i).ShapeHeader.ymax = shpObject->dfYMax;
+		shapeArray->at(i).ShapeHeader.zmax = shpObject->dfZMax;
+		shapeArray->at(i).ShapeHeader.xmin = shpObject->dfXMin;
+		shapeArray->at(i).ShapeHeader.ymin = shpObject->dfYMin;
+		shapeArray->at(i).ShapeHeader.zmin = shpObject->dfZMin;
+		shapeArray->at(i).ShapeType = type;
+		shapeArray->at(i).Parts.insert(shapeArray->at(i).Parts.begin(),
+			shpObject->panPartStart, shpObject->panPartStart + shpObject->nParts);
+		shared_ptr<vector<struct point3d>> pointArray(new vector<struct point3d>(shpObject->nVertices));
+		for (int j = 0; j < shpObject->nVertices; j++) {
+			pointArray->at(j).x = shpObject->padfX[j];
+			pointArray->at(j).y = shpObject->padfY[j];
+			pointArray->at(j).z = shpObject->padfZ[j];
+		}
+		shapeArray->at(i).Vertices = pointArray;
 	}
+	
+	struct shpmainheader header;
+	header.filecode = -1;
+	header.filelength = -1;
+	header.mmax = -1;
+	header.mmin = -1;
+	header.pad = -1;
+	header.shapetype = type;
+	header.unused0 = -1;
+	header.unused1 = -1;
+	header.unused2 = -1;
+	header.unused3 = -1;
+	header.unused4 = -1;
+	header.version = -1;
+	double* MaxBuffer = new double[4];
+	double* MinBuffer = new double[4];
+	SHPGetInfo(shpHandle, NULL, NULL, MinBuffer, MaxBuffer);
+	header.xmin = MinBuffer[0];
+	header.ymin = MinBuffer[1];
+	header.zmin = MinBuffer[2];
+	header.xmax = MaxBuffer[0];
+	header.ymax = MaxBuffer[1];
+	header.zmax = MaxBuffer[2];
+	delete[] MaxBuffer;
+	delete[] MinBuffer;
+
+	return VI_ShapeArray(shapeArray, header);
 }
