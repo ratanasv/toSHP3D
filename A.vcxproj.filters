@@ -36,6 +36,9 @@
     <ClCompile Include="Util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ShapeArray.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="createSHP3D.h">
@@ -58,6 +61,9 @@
     </ClInclude>
     <ClInclude Include="SHPToObj.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShapeArray.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

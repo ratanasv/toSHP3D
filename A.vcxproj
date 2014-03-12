@@ -126,6 +126,7 @@
     <ClCompile Include="Bicubic.cpp" />
     <ClCompile Include="createSHP3D.cpp" />
     <ClCompile Include="LatLongElevation.cpp" />
+    <ClCompile Include="ShapeArray.cpp" />
     <ClCompile Include="SHPToObj.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -139,6 +140,7 @@
     <ClInclude Include="createSHP3D.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="LatLongElevation.h" />
+    <ClInclude Include="ShapeArray.h" />
     <ClInclude Include="SHPToObj.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Util.h" />
