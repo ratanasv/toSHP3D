@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "createSHP3D.h"
 #include "Exception.h"
+#include "ShapeArray.h"
+#include "TTTSerializer.h"
 
 using namespace vir;
 using namespace std;
@@ -175,43 +177,46 @@ shared_ptr<vector<double>> getSHPInfo(const char* shpName)
 	return MinsMaxs;
 }
 
-static unsigned getIndexFromListPoly(TPPLPoint& Point,
-	shared_ptr<SHPObject>& shp)
-{
-	float EPS = 0.000000000000001;
-	for(int i = 0; i<shp->nVertices; i++)//search thru to find what we want
-		if(abs(Point.x - shp->padfX[i]) < EPS)
-			if(abs(Point.y - shp->padfY[i]) < EPS)
-				return (unsigned) i;
-	return 0;
+static unsigned GetIndexFromPoint(TPPLPoint& Point, VI_Shape& shp) {
+	float minDiff = FLT_MAX;
+	unsigned whichVertex = 0;
+
+	for (int i = 0; i < shp.ShapeHeader.numpoints; i++) {
+		const float error = pow(Point.x - shp.Vertices->at(i).x, 2) +
+			pow(Point.y - shp.Vertices->at(i).y, 2);
+		if (error < minDiff) {
+			minDiff = error;
+			whichVertex = (unsigned)i;
+		}
+	}
+	return whichVertex;
 }
 
 void createTTTFile(const char* tName, const char* shpName)
 {
-	auto shp_handle = initShapeHandle(SHPOpen(shpName, "rb"));
-	int num_shapes;
-	SHPGetInfo(shp_handle.get(), &num_shapes, NULL, NULL, NULL);
-	vector<shared_ptr<vector<unsigned>>> results(num_shapes, 
-		shared_ptr<vector<unsigned>>(NULL));
+	auto shapeArray = ImportFromSHPFile(shpName);
+	const int num_shapes = shapeArray.GetNumShapes();
+	auto buffer = initVectorArray<unsigned>();
 	
-	for(int i =0; i<num_shapes;i++) {
-		auto shape = initShape(SHPReadObject(shp_handle.get(), i));
+	unsigned pC = 0;//accumulative pointer counter
+	for(int i=0; i<num_shapes;i++) {
+		auto& shape = shapeArray.GetValue(i);
 		auto result = initVectorArray<unsigned>();
 		list<TPPLPoly> listPoly, listResult;
-		for(int j = 0; j<shape->nParts;j++){
-			int first = shape->panPartStart[j];
+		for(int j = 0; j<shape.Parts.size();j++){
+			int first = shape.Parts[j];
 			int last;
-			if(j ==shape->nParts-1)
-				last = shape->nVertices-1;
+			if (j == shape.Parts.size()-1)
+				last = shape.Vertices->size() -1;
 			else
-				last = shape->panPartStart[j+1]-1;
+				last = shape.Parts[j+1]-1;
 			TPPLPoly poly;
 			poly.Init(last-first+1);
 			unsigned c=0;
-			assert(shape->padfX[first] == shape->padfX[last]);
+			assert(shape.Vertices->at(first).x == shape.Vertices->at(last).x);
 			for (int k = first; k<=last; k++) {
-				poly[c].x = shape->padfX[k];
-				poly[c].y = shape->padfY[k];
+				poly[c].x = shape.Vertices->at(k).x;
+				poly[c].y = shape.Vertices->at(k).y;
 				c++;
 			}
 			if (poly.GetOrientation() == TPPL_CW) {
@@ -226,33 +231,21 @@ void createTTTFile(const char* tName, const char* shpName)
 		pp.Triangulate_EC(&listPoly, &listResult);
 		for(auto iter = listResult.begin(); iter!=listResult.end(); iter++){
 			unsigned index;
-			index = getIndexFromListPoly((*iter)[0],shape);//v1
-			result->push_back(index);
-			index = getIndexFromListPoly((*iter)[1],shape);//v2
-			result->push_back(index);
-			index = getIndexFromListPoly((*iter)[2],shape);//v3
-			result->push_back(index);
+			index = GetIndexFromPoint((*iter)[0],shape);//v1
+			buffer->push_back(pC+index);
+			index = GetIndexFromPoint((*iter)[1],shape);//v2
+			buffer->push_back(pC+index);
+			index = GetIndexFromPoint((*iter)[2],shape);//v3
+			buffer->push_back(pC+index);
 		}
-		results.at(i) = result;
+		pC += shape.ShapeHeader.numpoints;
 	}
 	unsigned accumulative = 0;
 	int total_tris = 0;
-	FILE* tri_file = fopen(tName, "wb");
-	fwrite(&num_shapes, sizeof(int), 1, tri_file);
-	fwrite(&num_shapes, sizeof(int), 1, tri_file);
-	for (int i=0; i<num_shapes; i++) {
-		auto result = results.at(i);
-		auto shape = initShape(SHPReadObject(shp_handle.get(), i));
-		for(int j=0; j<result->size(); j++){
-			unsigned index = result->at(j)+accumulative;
-			fwrite(&index, sizeof(unsigned), 1, tri_file);
-		}
-		total_tris += result->size()/3;
-		accumulative += shape->nVertices;
-	}
-	fseek(tri_file, sizeof(int), SEEK_SET);
-	fwrite(&total_tris, sizeof(int), 1, tri_file);
-	fclose(tri_file);
+
+	ofstream tttFile(tName);
+	boost::archive::text_oarchive oa(tttFile);
+	oa << TTTSerializer(shapeArray.GetHashCode(), buffer);
 }
 
 shared_ptr<char> getContent(const fs::path& path) {
