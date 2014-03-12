@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ShapeArray.h"
 #include <boost/functional/hash.hpp>
+#include "Util.h"
 
 using namespace std;
 
@@ -102,4 +103,14 @@ unsigned VI_ShapeArray::ComputeNumVertices() {
 		}
 	}
 	return total;
+}
+VI_ShapeArray ImportFromSHPFile(const std::string& fileName) {
+	auto shapes = InitVectorArray<VI_Shape>();
+	auto shpHandle = initShapeHandle(SHPOpen(fileName.c_str(), "rb"));
+	int numShapes;
+	SHPGetInfo(shpHandle.get(), &numShapes, NULL, NULL, NULL);
+	
+	for (int i=0; i<numShapes; i++) {
+		
+	}
 }

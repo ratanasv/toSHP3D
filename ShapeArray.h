@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <string>
 
 
 //header for shape files
@@ -96,3 +97,5 @@ private:
 	std::size_t ComputeHashCode();
 	unsigned ComputeNumVertices();
 };
+
+VI_ShapeArray ImportFromSHPFile(const std::string& fileName);
