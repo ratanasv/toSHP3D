@@ -17,22 +17,22 @@ struct shpmainheader
 	int version;
 	int shapetype;
 	int pad;
-	float xmin, ymin;
-	float xmax, ymax;
-	float zmin, zmax;
-	float mmin, mmax;
+	double xmin, ymin;
+	double xmax, ymax;
+	double zmin, zmax;
+	double mmin, mmax;
 };
 
 //pack xyz components into a point
 struct point3d
 {
-	float x, y, z;
+	double x, y, z;
 };
 
 //header for shapes
 struct shpheader
 {
-	float xmin, ymin, xmax, ymax, zmin, zmax;
+	double xmin, ymin, xmax, ymax, zmin, zmax;
 	int numparts;
 	int numpoints;
 };

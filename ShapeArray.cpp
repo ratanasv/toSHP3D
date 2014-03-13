@@ -9,30 +9,30 @@ using namespace std;
 size_t hash_value(const struct shpmainheader& header) {
 	size_t seed = 0;
 	boost::hash_combine(seed, header.shapetype);
-	boost::hash_combine(seed, header.xmin);
-	boost::hash_combine(seed, header.ymin);
-	boost::hash_combine(seed, header.ymax);
-	boost::hash_combine(seed, header.zmin);
-	boost::hash_combine(seed, header.zmax);
+	boost::hash_combine(seed, (float)header.xmin);
+	boost::hash_combine(seed, (float)header.ymin);
+	boost::hash_combine(seed, (float)header.ymax);
+	boost::hash_combine(seed, (float)header.zmin);
+	boost::hash_combine(seed, (float)header.zmax);
 	return seed;
 }
 
 size_t hash_value(const struct point3d& point) {
 	size_t seed = 0;
-	boost::hash_combine(seed, point.x);
-	boost::hash_combine(seed, point.y);
-	boost::hash_combine(seed, point.z);
+	boost::hash_combine(seed, (float)point.x);
+	boost::hash_combine(seed, (float)point.y);
+	boost::hash_combine(seed, (float)point.z);
 	return seed;
 }
 
 size_t hash_value(const struct shpheader& header) {
 	size_t seed = 0;
-	boost::hash_combine(seed, header.xmin);
-	boost::hash_combine(seed, header.ymin);
-	boost::hash_combine(seed, header.xmax);
-	boost::hash_combine(seed, header.ymax);
-	boost::hash_combine(seed, header.zmin);
-	boost::hash_combine(seed, header.zmax);
+	boost::hash_combine(seed, (float)header.xmin);
+	boost::hash_combine(seed, (float)header.ymin);
+	boost::hash_combine(seed, (float)header.xmax);
+	boost::hash_combine(seed, (float)header.ymax);
+	boost::hash_combine(seed, (float)header.zmin);
+	boost::hash_combine(seed, (float)header.zmax);
 	boost::hash_combine(seed, header.numparts);
 	boost::hash_combine(seed, header.numpoints);
 	return seed;

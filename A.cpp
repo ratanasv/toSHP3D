@@ -21,8 +21,12 @@ void main(int argc, char** argv) {
 	}
 
 	createSHP3D(argv[1], argv[2], resolution);*/
- 	createTTTFile("E:/Vault/centralOregon/idu3D.ttt",
- 		"E:/Vault/centralOregon/idu3D.shp");
+//  	createTTTFile("E:/Vault/centralOregon/idu3D.ttt",
+//  		"E:/Vault/centralOregon/idu3D.shp");
+// 	createTTTFile("C:/Users/ratanasv/Desktop/bicubic/idu3D.ttt", 
+// 		"C:/Users/ratanasv/Desktop/bicubic/idu3D.shp");
+	createTTTFile("E:/Vault/big_wood_basin/idu3D.ttt",
+		"E:/Vault/big_wood_basin/idu3D.shp");
 }
 
 #endif

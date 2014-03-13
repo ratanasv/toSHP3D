@@ -253,7 +253,7 @@ void createTTTFile(const char* tName, const char* shpName)
 	}
 	unsigned accumulative = 0;
 	int total_tris = 0;
-
+	fprintf(stderr, "%u\n", (unsigned)buffer->size()/3);
 	ofstream tttFile(tName, ios_base::trunc | ios_base::binary);
 	boost::archive::binary_oarchive oa(tttFile);
 	oa << TTTSerializer(shapeArray.GetHashCode(), buffer);
