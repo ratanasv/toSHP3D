@@ -192,6 +192,17 @@ static unsigned GetIndexFromPoint(TPPLPoint& Point, VI_Shape& shp) {
 	return whichVertex;
 }
 
+static unsigned getIndexFromListPoly(TPPLPoint& Point,
+	VI_Shape& shp)
+{
+	float EPS = 0.000000000000001;
+	for (int i = 0; i < shp.ShapeHeader.numpoints; i++)//search thru to find what we want
+	if (abs(Point.x - shp.Vertices->at(i).x) < EPS)
+		if (abs(Point.y - shp.Vertices->at(i).y) < EPS)
+			return (unsigned)i;
+	return 0;
+}
+
 void createTTTFile(const char* tName, const char* shpName)
 {
 	auto shapeArray = ImportFromSHPFile(shpName);
@@ -231,11 +242,11 @@ void createTTTFile(const char* tName, const char* shpName)
 		pp.Triangulate_EC(&listPoly, &listResult);
 		for(auto iter = listResult.begin(); iter!=listResult.end(); iter++){
 			unsigned index;
-			index = GetIndexFromPoint((*iter)[0],shape);//v1
+			index = getIndexFromListPoly((*iter)[0],shape);//v1
 			buffer->push_back(pC+index);
-			index = GetIndexFromPoint((*iter)[1],shape);//v2
+			index = getIndexFromListPoly((*iter)[1],shape);//v2
 			buffer->push_back(pC+index);
-			index = GetIndexFromPoint((*iter)[2],shape);//v3
+			index = getIndexFromListPoly((*iter)[2],shape);//v3
 			buffer->push_back(pC+index);
 		}
 		pC += shape.ShapeHeader.numpoints;
