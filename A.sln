@@ -35,10 +35,8 @@ Global
 		{EF28345B-7A0D-489E-8173-6C44BB85CC89}.Test|x64.ActiveCfg = Test|x64
 		{EF28345B-7A0D-489E-8173-6C44BB85CC89}.Test|x64.Build.0 = Test|x64
 		{EFEEAC23-EA2D-4FC8-8255-E39E16F52784}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
-		{EFEEAC23-EA2D-4FC8-8255-E39E16F52784}.Debug|Mixed Platforms.Build.0 = Debug|x64
 		{EFEEAC23-EA2D-4FC8-8255-E39E16F52784}.Debug|x64.ActiveCfg = Debug|x64
 		{EFEEAC23-EA2D-4FC8-8255-E39E16F52784}.Release|Mixed Platforms.ActiveCfg = Release|x64
-		{EFEEAC23-EA2D-4FC8-8255-E39E16F52784}.Release|Mixed Platforms.Build.0 = Release|x64
 		{EFEEAC23-EA2D-4FC8-8255-E39E16F52784}.Release|x64.ActiveCfg = Release|x64
 		{EFEEAC23-EA2D-4FC8-8255-E39E16F52784}.Test|Mixed Platforms.ActiveCfg = Test|x64
 		{EFEEAC23-EA2D-4FC8-8255-E39E16F52784}.Test|Mixed Platforms.Build.0 = Test|x64
