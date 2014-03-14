@@ -42,6 +42,9 @@
     <ClCompile Include="TTTSerializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Nearest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="createSHP3D.h">
@@ -70,6 +73,12 @@
     </ClInclude>
     <ClInclude Include="TTTSerializer.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Interpolate.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Nearest.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

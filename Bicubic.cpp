@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "Util.h"
 #include "Bicubic.h"
 #include <stdexcept>
 

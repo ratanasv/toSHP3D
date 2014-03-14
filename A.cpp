@@ -9,7 +9,7 @@ using boost::filesystem::path;
 
 
 void main(int argc, char** argv) {
-/*
+
 	if (argc != 4) {
 		fprintf(stderr, "usage: 2dshpPath outputPath resolution\n");
 		exit(EXIT_FAILURE);
@@ -20,13 +20,13 @@ void main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	createSHP3D(argv[1], argv[2], resolution);*/
+	createSHP3D(argv[1], argv[2], resolution);
 //  	createTTTFile("E:/Vault/centralOregon/idu3D.ttt",
 //  		"E:/Vault/centralOregon/idu3D.shp");
 // 	createTTTFile("C:/Users/ratanasv/Desktop/bicubic/idu3D.ttt", 
 // 		"C:/Users/ratanasv/Desktop/bicubic/idu3D.shp");
-	createTTTFile("E:/Vault/big_wood_basin/idu3D.ttt",
-		"E:/Vault/big_wood_basin/idu3D.shp");
+// 	createTTTFile("E:/Vault/big_wood_basin/idu3D.ttt",
+// 		"E:/Vault/big_wood_basin/idu3D.shp");
 }
 
 #endif

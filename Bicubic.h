@@ -1,8 +1,8 @@
 #pragma once
-#include "Util.h"
+#include "Interpolate.h"
 #include <memory>
 
-class Bicubic {
+class Bicubic : public Interpolate {
 public:
 	const int _resolution;
 	//_data is of dimension NxN
@@ -11,7 +11,7 @@ public:
 	std::shared_ptr<float[4][4]> _alpha;
 public:
 	Bicubic(std::shared_ptr<float>& data, const int resolution);
-	float valueAt(float di, float dj);
+	virtual float valueAt(float di, float dj);
 public:
 	std::shared_ptr<float> initFX();
 	std::shared_ptr<float> initFY();

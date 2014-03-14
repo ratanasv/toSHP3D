@@ -126,6 +126,7 @@
     <ClCompile Include="Bicubic.cpp" />
     <ClCompile Include="createSHP3D.cpp" />
     <ClCompile Include="LatLongElevation.cpp" />
+    <ClCompile Include="Nearest.cpp" />
     <ClCompile Include="ShapeArray.cpp" />
     <ClCompile Include="SHPToObj.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -140,7 +141,9 @@
     <ClInclude Include="Bicubic.h" />
     <ClInclude Include="createSHP3D.h" />
     <ClInclude Include="Exception.h" />
+    <ClInclude Include="Interpolate.h" />
     <ClInclude Include="LatLongElevation.h" />
+    <ClInclude Include="Nearest.h" />
     <ClInclude Include="ShapeArray.h" />
     <ClInclude Include="SHPToObj.h" />
     <ClInclude Include="stdafx.h" />

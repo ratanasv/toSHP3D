@@ -6,6 +6,7 @@
 #include <sstream>
 #include "Exception.h"
 #include "Bicubic.h"
+#include "Nearest.h"
 
 
 using std::ostringstream;
@@ -81,15 +82,9 @@ float MikeDEM::elevAt(double longtitude, double latitude) const {
 	double latI = ((latitude-LAT_MIN)/latRange)*((double)NUM_LATS-1.0);
 	double lngI = ((longtitude-LNG_MIN)/lngRange)*((double)NUM_LNGS-1.0);
 	
-	return _bicubic->valueAt(latI, lngI);
+	return _interpolate->valueAt(latI, lngI);
 }
 
-float MikeDEM::elevAtIndex(int lngI, int latI) const {
-	if (latI > NUM_LATS || lngI > NUM_LNGS || lngI < 0 || latI < 0 ) {
-		throw out_of_range("invalid lat/long");
-	}
-	return (elevationData.get())[NUM_LNGS*latI + lngI];
-}
 
 string MikeDEM::createQueryString( const string& baseURL ) {
 	ostringstream ss;
@@ -126,11 +121,17 @@ void MikeDEM::initHeightWithXTR(char* data) {
 // 	assert(numLngs == NUM_LNGS);
 // 	assert(numLats == NUM_LATS);
 
-	elevationData.reset(new float[NUM_LNGS*NUM_LATS]);
+	auto elevationData = initCStyleArray(new float[NUM_LNGS*NUM_LATS]);
 	auto elevPtr = elevationData.get();
 	for (int y = 0; y<NUM_LATS; y++) {
 		memcpy( &(elevPtr[y*NUM_LNGS]), data + iterator, sizeof(float)*NUM_LNGS);
 		iterator = iterator + sizeof(float)*NUM_LNGS;
 	}
-	_bicubic.reset(new Bicubic(elevationData, NUM_LNGS));
+	_interpolate = InterpolateFactory(elevationData, NUM_LNGS);
+}
+
+shared_ptr<Interpolate> MikeDEM::InterpolateFactory(shared_ptr<float> data,
+	int numLngs) 
+{
+	return shared_ptr<Interpolate>(new Nearest(data, numLngs));
 }
