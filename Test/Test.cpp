@@ -55,4 +55,21 @@ BOOST_AUTO_TEST_CASE( my_test ) {
 		}
 	}
 
+	for (int i = 0; i < resolution-1; i++) {
+		for (int j = 0; j < resolution-1; j++) {
+
+			float bottomLeft = bicubic.valueAt(i,j);
+			float bottomRight = bicubic.valueAt(i,j+1);
+			float topRight = bicubic.valueAt(i+1,j+1);
+			float topLeft = bicubic.valueAt(i+1,j);
+
+			float elev = bicubic.valueAt(i+0.7,j+0.3);
+			float anotherElev = bicubic.valueAt(i+0.5,j+0.1);
+
+			BOOST_REQUIRE(elev != anotherElev);
+			BOOST_REQUIRE_LT(elev, topRight);
+			BOOST_REQUIRE_GT(elev, bottomLeft);
+		}
+	}
+
 }

@@ -133,5 +133,5 @@ void MikeDEM::initHeightWithXTR(char* data) {
 shared_ptr<Interpolate> MikeDEM::InterpolateFactory(shared_ptr<float> data,
 	int numLngs) 
 {
-	return shared_ptr<Interpolate>(new Nearest(data, numLngs));
+	return shared_ptr<Interpolate>(new Bicubic(data, numLngs));
 }

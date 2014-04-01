@@ -98,8 +98,6 @@ void createNormalTexture(const char* image, const MikeDEM& dem,
 	double dx = (maxX-minX)/(double)resolution;
 	double dy = (maxY-minY)/(double)resolution;
 
-	omp_set_num_threads(omp_get_num_procs());
-#pragma omp parallel for
 	for (int i=1; i<resolution-1; i++) {
 		for (int j=1; j<resolution-1; j++) {
 			double centerY = minY + i*dy;
@@ -124,7 +122,7 @@ void createNormalTexture(const char* image, const MikeDEM& dem,
 			normals->at(resolution*3*i+3*j+2) = 255.0*(0.5*c.z+0.5);
 		}
 	}
-#pragma omp barrier
+
 	normals = flipVertically(normals,resolution,3);
 
 	int result = SOIL_save_image

@@ -45,40 +45,46 @@
     <ClCompile Include="Nearest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Linear.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="createSHP3D.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="LatLongElevation.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Exception.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Bicubic.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Util.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="SHPToObj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ShapeArray.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="TTTSerializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Exception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="createSHP3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Interpolate.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LatLongElevation.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Nearest.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShapeArray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Linear.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
