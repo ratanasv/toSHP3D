@@ -3,6 +3,7 @@
 #include "Exception.h"
 #include "ShapeArray.h"
 #include "TTTSerializer.h"
+#include <boost/log/trivial.hpp>
 
 using namespace vir;
 using namespace std;
@@ -280,8 +281,9 @@ shared_ptr<char> getContent(const fs::path& path) {
 
 void copyFile(const fs::path& in, const fs::path& out) {
 	if (!exists(in)) {
-		fprintf(stderr, "%s doesn't exist\n", in.string().c_str());
-		exit(EXIT_FAILURE);
+		stringstream ss;
+		ss << in.string().c_str() << " doesn't exist";
+		throw FileNotFoundException(ss.str());
 	}
 
 	ifstream source(in.string().c_str(), ios::binary);
@@ -297,11 +299,10 @@ string stringf(const char* format, ... ) {
 	va_list	args;
 	va_start(args, format);
 	int	size = vsnprintf(NULL, 0, format, args);
-	char* buffer = new char[size + 1];
-	vsnprintf(buffer, size + 1, format, args);
+	unique_ptr<char> buffer(new char[size + 1]);
+	vsnprintf(buffer.get(), size + 1, format, args);
 	va_end(args);
-	string result(buffer);
-	delete[] buffer;
+	string result(buffer.get());
 	return result;
 }
 
@@ -382,7 +383,12 @@ void computeCushion(double& minLng, double& maxLng, double& minLat, double& maxL
 void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 	fs::path inputShpPath(inSHP);
 	if (!exists(inputShpPath)) {
-		throw runtime_error(inputShpPath.string() + "doesn't exist");
+		throw FileNotFoundException(inputShpPath.string() + "doesn't exist");
+	}
+	bool isValidSHPFile = validateSHP(inSHP);
+	if (!isValidSHPFile) {
+		BOOST_LOG_TRIVIAL(fatal) << inSHP << " is not valid.";
+		exit(EXIT_FAILURE);
 	}
 
 	fs::path inPrjPath = inputShpPath;
@@ -392,9 +398,7 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 	fprintf(stderr, "determining transformation....\n");
 	OGRCoordinateTransformation* transformation = getTransformation(prjWKTBuffer);
 
-
-	fs::path inSHPPath(inSHP);
-	SHPHandle shpIn = SHPOpen(inSHPPath.string().c_str(),"rb");
+	SHPHandle shpIn = SHPOpen(inputShpPath.string().c_str(),"rb");
 	double minLng, maxLng, minLat, maxLat;
 	computeMinsMaxs(shpIn, transformation, minLng, maxLng, minLat, maxLat);
 	computeCushion(minLng, maxLng, minLat, maxLat);
@@ -402,7 +406,7 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 
 	
 
-	fprintf(stderr, "creating 3D shapefile.... \n");
+	BOOST_LOG_TRIVIAL(info) << "creating 3D shapefile....";
 	SHPHandle shpOut = SHPCreate(outSHP,SHPT_POLYGONZ);
 
 	double mins[4], maxs[4];
@@ -422,7 +426,8 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 			numVertices, xVertices, yVertices);
 
 		if (!isSuccessful) {
-			fprintf(stderr, "failed to project shp no. %d\n", i);
+			BOOST_LOG_TRIVIAL(error) << "failed to project shp no. " << i << 
+				" unable to proceed.";
 			exit(EXIT_FAILURE);
 		}
 
@@ -460,20 +465,40 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 
 	fs::path outPrjPath(outSHP);
 	outPrjPath.replace_extension(".prj");
-	copyFile(inPrjPath, outPrjPath);
+	if (exists(inPrjPath)) {
+		BOOST_LOG_TRIVIAL(info) << "copying " << inPrjPath;
+		copyFile(inPrjPath, outPrjPath);
+	} else {
+		BOOST_LOG_TRIVIAL(warning) << stringf("%s doesn't exist", 
+			inPrjPath.string().c_str());
+	}
+	
 
 	fs::path outDbfPath(outSHP);
 	outDbfPath.replace_extension(".dbf");
 	fs::path inDbfPath(inSHP);
 	inDbfPath.replace_extension(".dbf");
-	copyFile(inDbfPath, outDbfPath);
+	if (exists(inDbfPath)) {
+		BOOST_LOG_TRIVIAL(info) << "copying " << inDbfPath;
+		copyFile(inDbfPath, outDbfPath);
+	} else {
+		BOOST_LOG_TRIVIAL(warning) << stringf("%s doesn't exist", 
+			inDbfPath.string().c_str());
+	}
 
 	fs::path outXmlPath(outSHP);
 	outXmlPath.replace_extension(".xml");
 	fs::path inXmlPath(inSHP);
 	inXmlPath.replace_extension(".xml");
-	copyFile(inXmlPath, outXmlPath);
+	if (exists(inXmlPath)) {
+		BOOST_LOG_TRIVIAL(info) << "copying " << inXmlPath;
+		copyFile(inXmlPath, outXmlPath);
+	} else {
+		BOOST_LOG_TRIVIAL(warning) << stringf("%s doesn't exist", 
+			inXmlPath.string().c_str());
+	}
 
+	BOOST_LOG_TRIVIAL(info) << "triangulating ";
 	fs::path outTttPath(outSHP);
 	outTttPath.replace_extension(".ttt");
 	createTTTFile(outTttPath.string().c_str(), inSHP);
@@ -482,6 +507,52 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 	auto loc0 = normalsPathString.find(".");
 	normalsPathString.replace(loc0, string::npos, "Normals.bmp");
 	
+	BOOST_LOG_TRIVIAL(info) << "creating bumpmapping ";
 	createNormalTexture(normalsPathString.c_str(), demHeightField, mins[0], maxs[0],
 		mins[1], maxs[1], transformation, resolution);
+}
+
+bool validateSHP(const string& shpIn) {
+	fs::path inputShpPath(shpIn);
+	if (!exists(inputShpPath)) {
+		throw FileNotFoundException(inputShpPath.string() + " doesn't exist");
+	}
+	shared_ptr<SHPInfo> shpHandleSmartRef(SHPOpen(inputShpPath.string().c_str(),"rb"),
+		[](SHPHandle handle) {
+			SHPClose(handle);
+		}
+	);
+	auto shpHandle = shpHandleSmartRef.get();
+
+	double mins[4], maxs[4];
+	int numShapes;
+	SHPGetInfo(shpHandle, &numShapes, NULL, mins, maxs);
+
+	for (int i=0; i<numShapes; i++) {
+		shared_ptr<SHPObject> shpObjHandleSmartRef(SHPReadObject(shpHandle, i), 
+			[](SHPObject* obj){ 
+				SHPDestroyObject(obj);
+			}
+		);
+		auto shpObjHandle = shpObjHandleSmartRef.get();
+		for (int j=0; j<shpObjHandle->nVertices; j++) {
+			if (shpObjHandle->padfX[j] < mins[0]) {
+				BOOST_LOG_TRIVIAL(error) << "boundary error.";
+				return false;
+			}
+			if (shpObjHandle->padfX[j] > maxs[0]) {
+				BOOST_LOG_TRIVIAL(error) << "boundary error.";
+				return false;
+			}
+			if (shpObjHandle->padfY[j] < mins[1]) {
+				BOOST_LOG_TRIVIAL(error) << "boundary error.";
+				return false;
+			}
+			if (shpObjHandle->padfY[j] > maxs[1]) {
+				BOOST_LOG_TRIVIAL(error) << "boundary error.";
+				return false;
+			}
+		}
+	}
+	return true;
 }

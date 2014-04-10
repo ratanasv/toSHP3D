@@ -17,3 +17,8 @@ class CurlConnectionException : runtime_error {
 public:
 	CurlConnectionException(const std::string& what) : runtime_error(what) {};
 };
+
+class FileNotFoundException : std::runtime_error {
+public:
+	FileNotFoundException(const std::string& what) : std::runtime_error(what) {};
+};

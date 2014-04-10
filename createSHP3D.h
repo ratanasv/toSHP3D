@@ -40,3 +40,4 @@ std::string stringf(const char* format, ... );
 void computeMinsMaxs(SHPHandle shpIn, OGRCoordinateTransformation* transformation, 
 	double& minLng, double& maxLng, double& minLat, double& maxLat);
 void computeCushion(double& minLng, double& maxLng, double& minLat, double& maxLat);
+bool validateSHP(const std::string& shpIn);
