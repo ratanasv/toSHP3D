@@ -369,6 +369,25 @@ void computeMinsMaxs(SHPHandle shpIn, OGRCoordinateTransformation* transformatio
 		SHPDestroyObject(shpObjIn);
 	}
 
+	double xmin = mins[0];
+	double ymin = mins[1];
+	double xmax = maxs[0];
+	double ymax = maxs[1];
+	transformation->Transform(1, &xmin, &ymin);
+	transformation->Transform(1, &xmax, &ymax);
+	if (xmin < minLng) {
+		minLng = xmin;
+	}
+	if (xmax > maxLng) {
+		maxLng = xmax;
+	}
+	if (ymin < minLat) {
+		minLat = ymin;
+	}
+	if (ymax > maxLat) {
+		maxLat = ymax;
+	}
+
 }
 
 void computeCushion(double& minLng, double& maxLng, double& minLat, double& maxLat) {
@@ -395,7 +414,7 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 	inPrjPath.replace_extension(".prj");
 	auto prjWKTBuffer = getContent(inPrjPath);
 
-	fprintf(stderr, "determining transformation....\n");
+	BOOST_LOG_TRIVIAL(info) << "determining transformation....\n";
 	OGRCoordinateTransformation* transformation = getTransformation(prjWKTBuffer);
 
 	SHPHandle shpIn = SHPOpen(inputShpPath.string().c_str(),"rb");
@@ -556,3 +575,4 @@ bool validateSHP(const string& shpIn) {
 	}
 	return true;
 }
+
