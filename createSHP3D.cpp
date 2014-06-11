@@ -339,7 +339,7 @@ void computeMinsMaxs(SHPHandle shpIn, OGRCoordinateTransformation* transformatio
 	SHPGetInfo(shpIn,&numShapes,NULL,mins,maxs);
 
 	minLat = FLT_MAX; minLng = FLT_MAX;
-	maxLat = -999999.0; maxLng = -999999.0;
+	maxLat = -999999999.0; maxLng = -999999999.0;
 
 	for (int i=0; i<numShapes; i++) {//for each shape
 		SHPObject* shpObjIn = SHPReadObject(shpIn, i);
@@ -375,7 +375,7 @@ void computeMinsMaxs(SHPHandle shpIn, OGRCoordinateTransformation* transformatio
 	double ymax = maxs[1];
 	transformation->Transform(1, &xmin, &ymin);
 	transformation->Transform(1, &xmax, &ymax);
-	if (xmin < minLng) {
+	/*if (xmin < minLng) {
 		minLng = xmin;
 	}
 	if (xmax > maxLng) {
@@ -386,7 +386,7 @@ void computeMinsMaxs(SHPHandle shpIn, OGRCoordinateTransformation* transformatio
 	}
 	if (ymax > maxLat) {
 		maxLat = ymax;
-	}
+	}*/
 
 }
 
@@ -428,6 +428,8 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 	BOOST_LOG_TRIVIAL(info) << "creating 3D shapefile....";
 	SHPHandle shpOut = SHPCreate(outSHP,SHPT_POLYGONZ);
 
+	double xMin = FLT_MAX; double xMax = -FLT_MAX;
+	double yMin = FLT_MAX; double yMax = -FLT_MAX;
 	double mins[4], maxs[4];
 	int numShapes;
 	SHPGetInfo(shpIn, &numShapes, NULL, mins, maxs);
@@ -440,6 +442,21 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 		double* yVertices = new double[numVertices];
 		memcpy(xVertices, shpObjIn->padfX, sizeof(double)*numVertices);
 		memcpy(yVertices, shpObjIn->padfY, sizeof(double)*numVertices);
+
+		for (int j=0; j<numVertices; j++) {
+			if (xVertices[j] < xMin) {
+				xMin = xVertices[j];
+			}
+			if (xVertices[j] > xMax) {
+				xMax = xVertices[j];
+			}
+			if (yVertices[j] < yMin) {
+				yMin = yVertices[j];
+			}
+			if (yVertices[j] > yMax) {
+				yMax = yVertices[j];
+			}
+		}
 
 		bool isSuccessful = transformation->Transform(
 			numVertices, xVertices, yVertices);
@@ -478,9 +495,21 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 		SHPDestroyObject(shpObjIn);
 	}
 
-
 	SHPClose(shpIn);
 	SHPClose(shpOut);
+
+	if (xMin > mins[0]) {
+		BOOST_LOG_TRIVIAL(warning) << "xmin in shpheader is too small";
+	}
+	if (xMax < maxs[0]) {
+		BOOST_LOG_TRIVIAL(warning) << "xmax in shpheader is too big";
+	}
+	if (yMin > mins[1]) {
+		BOOST_LOG_TRIVIAL(warning) << "ymin in shpheader is too small";
+	}
+	if (yMax < maxs[1]) {
+		BOOST_LOG_TRIVIAL(warning) << "ymax in shpheader is too big";
+	}
 
 	fs::path outPrjPath(outSHP);
 	outPrjPath.replace_extension(".prj");
@@ -527,8 +556,8 @@ void createSHP3D(const char* inSHP, const char* outSHP, const int resolution) {
 	normalsPathString.replace(loc0, string::npos, "Normals.bmp");
 	
 	BOOST_LOG_TRIVIAL(info) << "creating bumpmapping ";
-	createNormalTexture(normalsPathString.c_str(), demHeightField, mins[0], maxs[0],
-		mins[1], maxs[1], transformation, resolution);
+	createNormalTexture(normalsPathString.c_str(), demHeightField, xMin, xMax,
+		yMin, yMax, transformation, resolution);
 }
 
 bool validateSHP(const string& shpIn) {
